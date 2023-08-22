@@ -4,48 +4,47 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represent a user
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "users")
 public class User {
 
+    /**
+     * This defines the attribute email as a primary key.
+     */
     @Id
     private String email;
 
-    private float balance;
+    @Column(nullable = false, columnDefinition = "float default 0")
+    private Float balance;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String password;
 
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER,
-            mappedBy = "sourceUser")
-    private List<Connection> connectionsSent;
-
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER,
-            mappedBy = "friendUser")
-    private List<Connection> connectionsReceived;
-
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER,
-            mappedBy = "senderUser")
-    private List<Transaction> transactionsSent;
-
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER,
-            mappedBy = "receiverUser")
-    private List<Transaction> transactionsReceived;
+    /**
+     * This defines the relationship between two users.
+     */
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE
+            }
+    )
+    @JoinTable(
+            name = "connections",
+            joinColumns = @JoinColumn(name = "user1"),
+            inverseJoinColumns = @JoinColumn(name = "user2")
+    )
+    private List<User> connections = new ArrayList<>();
 }
