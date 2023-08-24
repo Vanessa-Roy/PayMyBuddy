@@ -10,4 +10,5 @@ class PayMyBuddyApplicationTests {
 	void contextLoads() {
 	}
 
+
 }

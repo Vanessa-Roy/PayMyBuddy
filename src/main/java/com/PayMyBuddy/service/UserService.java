@@ -1,6 +1,7 @@
 package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
+import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,4 +23,21 @@ public class UserService {
     public Iterable<User> findAll() {
         return userRepository.findAll();
     }
+
+    public User registerNewUserAccount(UserDTO userDto) throws UserAlreadyExistException {
+        if (emailExists(userDto.getEmail())) {
+            throw new UserAlreadyExistException("There is an account with that email address: "
+                    + userDto.getEmail());
+        }
+        User user = objectMapper.convertValue(userDto, User.class);
+        user.setBalance((float) 0);
+        logger.info("the user has been created");
+
+        return userRepository.save(user);
+    }
+
+    private boolean emailExists(String email) {
+        return userRepository.findById(email).isPresent();
+    }
+
 }

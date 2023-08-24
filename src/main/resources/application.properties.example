@@ -1,6 +1,5 @@
 spring.datasource.url=jdbc:mysql://localhost:3306/PayMyBuddy?serverTimeZone=UTC
 spring.datasource.username=root
-spring.datasource.password=openclassrooms
+spring.datasource.password=yourPassword
 spring.jpa.hibernate.ddl-auto = update
-
-security.basic.enabled=false
+spring.mvc.view.suffix=.html
