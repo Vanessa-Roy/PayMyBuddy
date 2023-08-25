@@ -1,6 +1,7 @@
 package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
+import com.PayMyBuddy.controller.PasswordMatchesValidator;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
@@ -8,7 +9,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -20,20 +25,45 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public Iterable<User> findAll() {
-        return userRepository.findAll();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
-    public User registerNewUserAccount(UserDTO userDto) throws UserAlreadyExistException {
-        if (emailExists(userDto.getEmail())) {
-            throw new UserAlreadyExistException("There is an account with that email address: "
-                    + userDto.getEmail());
-        }
-        User user = objectMapper.convertValue(userDto, User.class);
-        user.setBalance((float) 0);
-        logger.info("the user has been created");
+    public List<UserDTO> findAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(this::mapToUserDto)
+                .collect(Collectors.toList());
+    }
 
-        return userRepository.save(user);
+    public void saveUser(UserDTO userDto) throws UserAlreadyExistException {
+
+        User existingUser = findUserByEmail(userDto.getEmail());
+
+        if(existingUser != null){
+            throw new UserAlreadyExistException();
+        }
+
+        new PasswordMatchesValidator().isValid();
+
+        User user = new User();
+        user.setName(userDto.getName());
+        user.setEmail(userDto.getEmail());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setBalance((float) 0);
+
+        userRepository.save(user);
+        logger.info("the user has been created");
+    }
+
+    private UserDTO mapToUserDto(User user){
+        UserDTO userDto = new UserDTO();
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        return userDto;
     }
 
     private boolean emailExists(String email) {

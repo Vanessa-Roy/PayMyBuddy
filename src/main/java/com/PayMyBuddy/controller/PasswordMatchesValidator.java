@@ -1,8 +1,9 @@
 package com.PayMyBuddy.controller;
 
 import com.PayMyBuddy.dto.UserDTO;
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 
 public class PasswordMatchesValidator implements ConstraintValidator<PayMyBuddyController.PasswordMatches, Object> {
@@ -14,5 +15,8 @@ public class PasswordMatchesValidator implements ConstraintValidator<PayMyBuddyC
     public boolean isValid(Object obj, ConstraintValidatorContext context){
             UserDTO user = (UserDTO) obj;
             return user.getPassword().equals(user.getMatchingPassword());
+    }
+
+    public void isValid() {
     }
 }

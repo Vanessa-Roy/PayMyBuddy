@@ -1,36 +1,30 @@
 package com.PayMyBuddy.controller;
 
-import ch.qos.logback.core.util.CachingDateFormatter;
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.UserAlreadyExistException;
 import com.PayMyBuddy.service.UserService;
-import com.nimbusds.openid.connect.sdk.AuthenticationRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Constraint;
-import jakarta.validation.Payload;
-import jakarta.validation.Valid;
+
+import javax.validation.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.sql.Date;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -38,6 +32,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * Centralise the endpoints and calls the right service in attempt to find and send the response or create/delete/update data's.
  */
+@Validated
 @Controller
 public class PayMyBuddyController {
 
@@ -46,42 +41,51 @@ public class PayMyBuddyController {
     @Autowired
     private UserService userService;
 
-    private ModelAndView mav = new ModelAndView();
+    @GetMapping("/index")
+    public String home(){
+        return "index";
+    }
 
-
-    @GetMapping("/user/registration")
-    public String showRegistrationForm(WebRequest request, Model model) {
+    @GetMapping("/register")
+    public String showRegistrationForm(Model model){
         logger.info("request the form page");
-        UserDTO userDto = new UserDTO();
-        model.addAttribute("user", userDto);
-        return "registration";
+        UserDTO userDTO = new UserDTO();
+        model.addAttribute("user", userDTO);
+        return "register";
     }
 
+    @PostMapping("/register/save")
+    public String registration(@Valid @ModelAttribute("user") UserDTO userDto,
+                               BindingResult result,
+                               Model model,
+                               RedirectAttributes redirAttrs) {
 
-    @PostMapping("/user/registration")
-    public ModelAndView registerUserAccount(
-            @ModelAttribute("user") @Valid UserDTO userDto,
-            HttpServletRequest request,
-            Errors errors) {
-        logger.info("request for creating a user");
-        try {
-            User registered = userService.registerNewUserAccount(userDto);
-        } catch (UserAlreadyExistException uaeEx) {
-            mav.addObject("message", "An account for that username/email already exists.");
-            return mav;
+        if(result.hasErrors()){
+            model.addAttribute("user", userDto);
+            return "/register";
         }
-        return new ModelAndView("successRegister", "user", userDto);
+
+        try {
+            userService.saveUser(userDto);
+            return "redirect:/register?success";
+        } catch (UserAlreadyExistException e) {
+            redirAttrs.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/register";
+        }
     }
 
-    @Target({TYPE, FIELD, ANNOTATION_TYPE})
-    @Retention(RUNTIME)
-    @Constraint(validatedBy = EmailValidator.class)
-    @Documented
-    public @interface ValidEmail {
-        String message() default "Invalid email";
-        Class<?>[] groups() default {};
-        Class<? extends Payload>[] payload() default {};
+    @GetMapping("/users")
+    public String users(Model model){
+        List<UserDTO> users = userService.findAllUsers();
+        model.addAttribute("users", users);
+        return "users";
     }
+
+    @GetMapping("/login")
+    public String login(){
+        return "login";
+    }
+
 
     @Target({TYPE,ANNOTATION_TYPE})
     @Retention(RUNTIME)
