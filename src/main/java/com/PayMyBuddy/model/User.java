@@ -48,10 +48,4 @@ public class User {
     )
     private List<User> connections = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinTable(
-            name="users_roles",
-            joinColumns={@JoinColumn(name="USER_ID", referencedColumnName="EMAIL")},
-            inverseJoinColumns={@JoinColumn(name="ROLE_ID", referencedColumnName="ID")})
-    private List<Role> roles = new ArrayList<>();
 }

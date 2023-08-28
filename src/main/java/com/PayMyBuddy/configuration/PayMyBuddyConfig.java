@@ -30,7 +30,6 @@ public class PayMyBuddyConfig  {
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/register/**").permitAll()
                                 .requestMatchers("**").authenticated()
-                                //.requestMatchers("/users").hasRole("ADMIN")
                 ).formLogin(
                         form -> form
                                 .loginPage("/login")

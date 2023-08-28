@@ -1,4 +1,4 @@
-package com.PayMyBuddy.service;
+package com.PayMyBuddy.exception;
 
 public class UserAlreadyExistException extends Exception {
     public UserAlreadyExistException() {
