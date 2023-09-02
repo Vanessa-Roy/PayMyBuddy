@@ -43,7 +43,7 @@ public class PayMyBuddyController {
     }
 
     @PostMapping("/register")
-    public String registration(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+    public String registration(@Valid @ModelAttribute("user") UserDTO userDto, Model model, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "register";
         }
@@ -51,8 +51,8 @@ public class PayMyBuddyController {
             userService.saveUser(userDto);
             return "redirect:/register?success";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/register";
+            model.addAttribute("errorMessage", e.getMessage());
+            return "register";
         }
     }
 

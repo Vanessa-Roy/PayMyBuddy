@@ -11,25 +11,9 @@
           crossorigin="anonymous">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/index}">Registration and Login System</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" th:href="@{/register}">Register</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<br /><br />
-<div class="container">
+<div class="container mt-5">
     <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-md-4 offset-4">
 
             <div th:if="${param.error}">
                 <div class="alert alert-danger">Invalid Email or Password</div>
@@ -39,10 +23,8 @@
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h2 class="text-center">Login Form</h2>
-                </div>
                 <div class="card-body">
+                    <img class="col-md-6 offset-md-3" th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo"/>
                     <form
                             method="post"
                             role="form"
@@ -50,31 +32,37 @@
                             class="form-horizontal"
                     >
                         <div class="form-group mb-3">
-                            <label class="control-label"> Email</label>
+                            <label class="control-label"></label>
                             <input
                                     type="text"
                                     id="username"
                                     name="username"
                                     class="form-control"
-                                    placeholder="Enter email address"
+                                    placeholder="📧 Email"
                             />
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="control-label"> Password</label>
+                            <label class="control-label"></label>
                             <input
                                     type="password"
                                     id="password"
                                     name="password"
                                     class="form-control"
-                                    placeholder="Enter password"
+                                    placeholder="⚙️ Password"
                             />
                         </div>
-                        <div class="form-group mb-3">
-                            <button type="submit" class="btn btn-primary" >Submit</button>
-                            <span> Not registered ?
-                                <a th:href="@{/register}">Register/Signup here</a>
-                            </span>
+                        <div class="form-check mb-5 text-center col-md-6 offset-md-3">
+                            <input class="form-check-input" type="checkbox" id="remember-me" name="remember-me" value="Remember me"/>
+                            <label class="form-check-label" for=remember-me>
+                                Remember me
+                            </label>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary text-center col-md-5 fs-5" >Login</button>
+                        </div>
+                        <div class="text-center"> Not registered ?
+                            <a class="text-center" th:href="@{/register}">Signup here</a>
                         </div>
                     </form>
                 </div>

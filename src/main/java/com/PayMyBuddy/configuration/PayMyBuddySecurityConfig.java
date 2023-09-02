@@ -34,7 +34,9 @@ public class PayMyBuddySecurityConfig {
         http.csrf(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/register/**").permitAll()
+                                .requestMatchers("*.png").permitAll()
                                 .requestMatchers("**").authenticated()
+                ).rememberMe(Customizer.withDefaults()
                 ).formLogin(
                         form -> form
                                 .loginPage("/login")
@@ -45,7 +47,8 @@ public class PayMyBuddySecurityConfig {
                         logout -> logout
                                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                                 .permitAll()
-                ).userDetailsService(customUserDetailsService);
+                ).userDetailsService(customUserDetailsService)
+        ;
         return http.build();
     }
 
