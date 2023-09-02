@@ -2,9 +2,6 @@ package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.EmailRegexException;
-import com.PayMyBuddy.exception.NotBlankAndEmptyException;
-import com.PayMyBuddy.exception.PasswordMatchesException;
 import com.PayMyBuddy.exception.UserAlreadyExistException;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
@@ -15,11 +12,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(PayMyBuddyApplication.class);
@@ -35,7 +34,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User findUserByEmail(String email) {
+    public User loadUserByUsername(String email) {
         return userRepository.findByEmail(email);
     }
 
@@ -50,7 +49,7 @@ public class UserService {
 
         userValidator.isValid(userDto);
 
-        User existingUser = findUserByEmail(userDto.getEmail());
+        User existingUser = loadUserByUsername(userDto.getEmail());
 
         if(existingUser != null){
             throw new UserAlreadyExistException();
@@ -60,7 +59,7 @@ public class UserService {
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        user.setBalance((float) 0);
+        user.setBalance(0f);
 
         userRepository.save(user);
         logger.info("the user has been created");

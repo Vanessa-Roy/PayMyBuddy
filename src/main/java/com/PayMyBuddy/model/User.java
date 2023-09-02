@@ -1,8 +1,7 @@
 package com.PayMyBuddy.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +9,10 @@ import java.util.List;
 /**
  * Represent a user
  */
-@Getter
-@Setter
+
 @Entity
+@Setter
+@Getter
 @Table(name = "users")
 public class User {
 

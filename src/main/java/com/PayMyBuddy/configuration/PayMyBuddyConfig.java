@@ -1,5 +1,6 @@
 package com.PayMyBuddy.configuration;
 
+import com.PayMyBuddy.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class PayMyBuddyConfig  {
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public static PasswordEncoder passwordEncoder(){
@@ -40,7 +44,7 @@ public class PayMyBuddyConfig  {
                         logout -> logout
                                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                                 .permitAll()
-                );
+                ).userDetailsService(customUserDetailsService);
         return http.build();
     }
 
