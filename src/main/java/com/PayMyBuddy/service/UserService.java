@@ -5,7 +5,7 @@ import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.UserAlreadyExistException;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
-import com.PayMyBuddy.validator.UserValidator;
+import com.PayMyBuddy.validator.PasswordValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,7 +26,7 @@ public class UserService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    private UserValidator userValidator;
+    private PasswordValidator passwordValidator;
 
     @Autowired
     private UserRepository userRepository;
@@ -47,7 +47,7 @@ public class UserService {
 
     public void saveUser(UserDTO userDto) throws Exception {
 
-        userValidator.isValid(userDto);
+        passwordValidator.isValid(userDto);
 
         User existingUser = loadUserByUsername(userDto.getEmail());
 

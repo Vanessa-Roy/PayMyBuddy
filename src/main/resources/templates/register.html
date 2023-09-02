@@ -47,7 +47,7 @@
                 <form
                         method="post"
                         role="form"
-                        th:action="@{/register/save}"
+                        th:action="@{/register}"
                         th:object="${user}"
                 >
                     <div class="form-group mb-3">
@@ -101,8 +101,8 @@
                                 th:field="*{matchingPassword}"
                                 type="password"
                         />
-                        <p th:errors = "*{password}" class="text-danger"
-                           th:if="${#fields.hasErrors('password')}"></p>
+                        <p th:errors = "*{matchingPassword}" class="text-danger"
+                           th:if="${#fields.hasErrors('matchingPassword')}"></p>
                     </div>
                     <div class="form-group">
                         <button class="btn btn-primary" type="submit">Register</button>
