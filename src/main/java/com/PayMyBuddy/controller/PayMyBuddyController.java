@@ -43,7 +43,7 @@ public class PayMyBuddyController {
     }
 
     @PostMapping("/register")
-    public String registration(@Valid @ModelAttribute("user") UserDTO userDto, Model model, BindingResult bindingResult) {
+    public String registration(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             return "register";
         }

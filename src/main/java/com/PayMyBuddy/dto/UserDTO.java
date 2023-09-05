@@ -1,10 +1,14 @@
 package com.PayMyBuddy.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
     @Pattern(regexp = "[a-z-A-Z]*", message = "name must contain only letters")
     @Size(min = 2, max = 20)

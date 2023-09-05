@@ -2,11 +2,10 @@ package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.UserAlreadyExistException;
+import com.PayMyBuddy.exception.UserAlreadyExistsException;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.validator.PasswordValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,6 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(PayMyBuddyApplication.class);
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private PasswordValidator passwordValidator;
@@ -47,13 +44,13 @@ public class UserService {
 
     public void saveUser(UserDTO userDto) throws Exception {
 
-        passwordValidator.isValid(userDto);
-
         User existingUser = loadUserByUsername(userDto.getEmail());
 
         if(existingUser != null){
-            throw new UserAlreadyExistException();
+            throw new UserAlreadyExistsException();
         }
+
+        passwordValidator.isValid(userDto);
 
         User user = new User();
         user.setName(userDto.getName());
@@ -70,10 +67,6 @@ public class UserService {
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
         return userDto;
-    }
-
-    private boolean emailExists(String email) {
-        return userRepository.findById(email).isPresent();
     }
 
 }
