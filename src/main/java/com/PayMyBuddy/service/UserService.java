@@ -2,6 +2,7 @@ package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.UserDTO;
+import com.PayMyBuddy.exception.PasswordMatchesException;
 import com.PayMyBuddy.exception.UserAlreadyExistsException;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
@@ -9,6 +10,7 @@ import com.PayMyBuddy.validator.PasswordValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,4 +71,20 @@ public class UserService {
         return userDto;
     }
 
+    public void update(UserDTO userDto) throws UsernameNotFoundException, PasswordMatchesException {
+        User existingUser = loadUserByUsername(userDto.getEmail());
+
+        if(existingUser == null){
+            throw new UsernameNotFoundException(userDto.getEmail());
+        }
+
+        passwordValidator.isValid(userDto);
+
+        existingUser.setName(userDto.getName());
+        existingUser.setEmail(userDto.getEmail());
+        existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+
+        userRepository.save(existingUser);
+        logger.info("the user has been updated");
+    }
 }

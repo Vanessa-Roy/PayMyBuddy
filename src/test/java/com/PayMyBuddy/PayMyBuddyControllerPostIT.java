@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
@@ -33,7 +35,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Testcontainers
@@ -42,17 +43,16 @@ public class PayMyBuddyControllerPostIT {
     @Autowired
     private DataSource dataSource;
 
-    @Container
-    static final MySQLContainer<?> mySQLContainer;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    static {
-        mySQLContainer = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.26"))
-                .withDatabaseName("testdb")
-                .withUsername("test")
-                .withPassword("test")
-                .waitingFor(Wait.forListeningPort())
-                .withEnv("MYSQL_ROOT_HOST", "%");
-    }
+    @Container
+    static final MySQLContainer<?> mySQLContainer = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.26"))
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .waitingFor(Wait.forListeningPort())
+            .withEnv("MYSQL_ROOT_HOST", "%");
 
     @Autowired
     private UserService userService;
@@ -69,9 +69,7 @@ public class PayMyBuddyControllerPostIT {
 
     @AfterEach
     void tearDown() throws InterruptedException {
-        if (dataSource instanceof HikariDataSource) {
-            ((HikariDataSource) dataSource).close();
-        }
+        JdbcTestUtils.deleteFromTables(jdbcTemplate, "users", "transactions");
     }
     @Autowired
     private MockMvc mockMvc;
@@ -162,6 +160,22 @@ public class PayMyBuddyControllerPostIT {
     }
 
     @Test
+    void saveUserWithNameWithOnlySpacesShouldFailTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/register")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name","  ")
+                        .param("password","passwordTest!0")
+                        .param("matchingPassword","passwordTest!0")
+                        .param("email","userTest@email.com")
+                        .with(csrf()))
+;
+
+        assertNull((userService.loadUserByUsername("userTest@email.com")));
+    }
+
+    @Test
     void saveUserWithCompoundNameShouldPassTest() throws Exception {
 
         this.mockMvc
@@ -176,6 +190,40 @@ public class PayMyBuddyControllerPostIT {
                 .andExpect(view().name("redirect:/register?success"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
+    }
+
+    @Test
+    void saveUserWithNameWithOnlyHyphensShouldFailTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/register")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name","--")
+                        .param("password","passwordTest!0")
+                        .param("matchingPassword","passwordTest!0")
+                        .param("email","userTest@email.com")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("register"));
+
+        assertNull((userService.loadUserByUsername("userTest@email.com")));
+    }
+
+    @Test
+    void saveUserWithNullsParameterShouldFailTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/register")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name", (String) null)
+                        .param("password", (String) null)
+                        .param("matchingPassword", (String) null)
+                        .param("email", (String) null)
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("register"));
+
+        assertNull((userService.loadUserByUsername("userTest@email.com")));
     }
 
     @Test

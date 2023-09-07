@@ -6,19 +6,12 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represent a user
- */
-
 @Entity
 @Setter
 @Getter
 @Table(name = "users")
 public class User {
 
-    /**
-     * This defines the attribute email as a primary key.
-     */
     @Id
     private String email;
 
@@ -31,9 +24,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    /**
-     * This defines the relationship between two users.
-     */
     @ManyToMany(
             fetch = FetchType.LAZY,
             cascade = {
