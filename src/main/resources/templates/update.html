@@ -49,7 +49,7 @@
 
     <div th:if="${param.success}">
       <div class="alert alert-info">
-        You have successfully registered our app!
+        You have successfully updated your profile!
       </div>
     </div>
     <div th:if="${errorMessage}">
@@ -62,10 +62,10 @@
       <div class="card-body">
         <h5 class="mt-1 text-center card-title">Update your profile</h5>
         <form
-                method="put"
+                method="post"
                 role="form"
                 th:action="@{/update}"
-                th:object="${updatedUser}"
+                th:object="${user}"
         >
           <div class="form-group mb-1">
             <label class="control-label"></label>
@@ -73,7 +73,7 @@
                     class="form-control"
                     id="name"
                     name="name"
-                    th:value="${existingUser.name}"
+                    th:value="${user.name}"
                     type="text"
             />
             <p th:errors = "*{name}" class="text-danger"
@@ -86,7 +86,7 @@
                     class="form-control"
                     id="email"
                     name="email"
-                    th:value="${existingUser.email}"
+                    th:value="${user.email}"
                     type="email"
             />
             <p th:errors = "*{email}" class="text-danger"

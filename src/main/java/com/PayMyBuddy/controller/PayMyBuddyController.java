@@ -15,10 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -91,24 +88,49 @@ public class PayMyBuddyController {
     public String update(Model model){
         logger.info("request the update page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(auth.getName());
-        model.addAttribute("existingUser", user);
-        model.addAttribute("updatedUser", new UserDTO());
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
         return "update";
     }
 
-    @PutMapping("/update")
-    public String update(@Valid @ModelAttribute("updatedUser") UserDTO userDto, BindingResult bindingResult, Model model) {
-        logger.info("request the updating of the user {}", userDto.getName());
+    @PostMapping("/update")
+    public String update(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
+        logger.info("request the update of the user {}", userDto.getName());
         if (bindingResult.hasErrors()) {
             return "update";
         }
         try {
             userService.update(userDto);
-            return "update:/update?success";
+            return "redirect:/update?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "update";
+        }
+    }
+
+    @GetMapping("/editName")
+    public String editName(Model model){
+        logger.info("request the editName page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        return "editName";
+    }
+
+    @PostMapping("/editName")
+    public String editName(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
+        logger.info("request the name's update of the user {}", userDto.getName());
+        if (bindingResult.hasErrors()) {
+            return "editName";
+        }
+        try {
+            userService.editName(userDto);
+            return "redirect:/profile?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "editName";
         }
     }
 

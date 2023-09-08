@@ -10,6 +10,8 @@ import com.PayMyBuddy.validator.PasswordValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -64,7 +66,7 @@ public class UserService {
         logger.info("the user has been created");
     }
 
-    private UserDTO mapToUserDto(User user){
+    public UserDTO mapToUserDto(User user){
         UserDTO userDto = new UserDTO();
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
@@ -86,5 +88,15 @@ public class UserService {
 
         userRepository.save(existingUser);
         logger.info("the user has been updated");
+    }
+
+    public void editName(UserDTO userDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = this.loadUserByUsername(auth.getName());
+
+        existingUser.setName(userDto.getName());
+
+        userRepository.save(existingUser);
+        logger.info("the name's user has been updated");
     }
 }

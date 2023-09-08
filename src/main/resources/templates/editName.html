@@ -4,7 +4,7 @@
 >
 <head>
     <meta charset="UTF-8">
-    <title>Pay My Buddy - Profile</title>
+    <title>Pay My Buddy - Edit Name</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
@@ -39,46 +39,50 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/index">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Profile</li>
+            <li class="breadcrumb-item"><a href="/index">Profile</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Name</li>
         </ol>
     </nav>
 </div>
 <div class="container mt-2">
     <div class="row col-md-6 offset-md-3">
-
-        <div th:if="${param.success}">
-            <div class="alert alert-info">
-                You have successfully updated your profile!
-            </div>
-        </div>
         <div class="card">
             <div class="card-body">
-                <h5 class="mt-1 text-center card-title">My Profile</h5>
+                <h5 class="mt-1 text-center card-title">Update your name</h5>
+                <form
+                        method="post"
+                        role="form"
+                        th:action="@{/editName}"
+                        th:object="${user}"
+                >
                     <div class="form-group mb-1">
-                        <div class="card mb-2">
-                            <div class="card-header">
-                                👤 Name
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.name}">
-                                </li>
-                            </ul>
-                            <div class="text-center">
-                                <a class="btn btn-success" href="/editName">Edit the name</a>
-                            </div>
+                        <label class="control-label"></label>
+                        <input
+                                class="form-control"
+                                id="name"
+                                name="name"
+                                th:value="${user.name}"
+                                type="text"
+                        />
+                        <p th:errors = "*{name}" class="text-danger"
+                           th:if="${#fields.hasErrors('name')}"></p>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success" >Confirm the name</button>
                         </div>
-                        <div class="card mb-2">
-                            <div class="card-header">
-                                📧 Email
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.email}"></li>
-                            </ul>
+                        <div class="text-center"> Cancel the update?
+                            <a class="text-center" th:href="@{/profile}">Go back to profile</a>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <a class="btn btn-primary text-center col-md-5 fs-5" href="/editPassword" role="button">Edit my password</a>
+                </form>
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            📧 Email
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item" th:text="${user.email}"></li>
+                        </ul>
                     </div>
+                </div>
             </div>
         </div>
     </div>
