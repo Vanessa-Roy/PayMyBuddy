@@ -1,8 +1,10 @@
 package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
+import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.PasswordMatchesException;
+import com.PayMyBuddy.exception.MatchingPasswordException;
+import com.PayMyBuddy.exception.OldPasswordException;
 import com.PayMyBuddy.exception.UserAlreadyExistsException;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
@@ -73,7 +75,7 @@ public class UserService {
         return userDto;
     }
 
-    public void update(UserDTO userDto) throws UsernameNotFoundException, PasswordMatchesException {
+    public void update(UserDTO userDto) throws UsernameNotFoundException, MatchingPasswordException {
         User existingUser = loadUserByUsername(userDto.getEmail());
 
         if(existingUser == null){
@@ -98,5 +100,22 @@ public class UserService {
 
         userRepository.save(existingUser);
         logger.info("the name's user has been updated");
+    }
+
+    public void editPassword(PasswordDTO passwordDTO) throws MatchingPasswordException, OldPasswordException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = this.loadUserByUsername(auth.getName());
+
+        if (!passwordDTO.getNewPassword().equals(passwordDTO.getMatchingPassword())) {
+            throw new MatchingPasswordException();
+        }
+
+        if (!passwordEncoder.matches(passwordDTO.getOldPassword(),existingUser.getPassword())) {
+            throw new OldPasswordException();
+        }
+
+        existingUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
+        userRepository.save(existingUser);
+        logger.info("the password's user has been updated");
     }
 }

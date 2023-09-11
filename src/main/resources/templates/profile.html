@@ -44,7 +44,7 @@
     </nav>
 </div>
 <div class="container mt-2">
-    <div class="row col-md-6 offset-md-3">
+    <div class="row col-md-8 offset-md-2">
 
         <div th:if="${param.success}">
             <div class="alert alert-info">
@@ -54,31 +54,32 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="mt-1 text-center card-title">My Profile</h5>
-                    <div class="form-group mb-1">
-                        <div class="card mb-2">
-                            <div class="card-header">
-                                👤 Name
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.name}">
-                                </li>
-                            </ul>
-                            <div class="text-center">
-                                <a class="btn btn-success" href="/editName">Edit the name</a>
-                            </div>
+                <div class="form-group mb-1">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            📧 Email
                         </div>
-                        <div class="card mb-2">
-                            <div class="card-header">
-                                📧 Email
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.email}"></li>
-                            </ul>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item" th:text="${user.email}"></li>
+                        </ul>
+                    </div>
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            👤 Name
+                            <a class="float-end btn btn-outline-success btn-sm" href="/editName">Edit the name</a>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item" th:text="${user.name}">
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            ⚙️ Password
+                            <a class="float-end btn btn-outline-success btn-sm" href="/editPassword">Edit the password</a>
                         </div>
                     </div>
-                    <div class="text-center">
-                        <a class="btn btn-primary text-center col-md-5 fs-5" href="/editPassword" role="button">Edit my password</a>
-                    </div>
+                </div>
             </div>
         </div>
     </div>

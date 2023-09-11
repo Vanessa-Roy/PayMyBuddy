@@ -1,6 +1,7 @@
 package com.PayMyBuddy.controller;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
+import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.UserService;
@@ -131,6 +132,31 @@ public class PayMyBuddyController {
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "editName";
+        }
+    }
+
+    @GetMapping("/editPassword")
+    public String editPassword(Model model){
+        logger.info("request the editPassword page");
+        PasswordDTO password = new PasswordDTO();
+        model.addAttribute("password", password);
+        return "editPassword";
+    }
+
+    @PostMapping("/editPassword")
+    public String editName(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        logger.info("request the password's update of the user {}", auth.getName());
+
+        if (bindingResult.hasErrors()) {
+            return "editPassword";
+        }
+        try {
+            userService.editPassword(passwordDTO);
+            return "redirect:/logout";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "editPassword";
         }
     }
 

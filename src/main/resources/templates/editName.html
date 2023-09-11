@@ -24,7 +24,7 @@
                 <a class="nav-link" href="/transfer">Transfer</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Profile</a>
+                <a class="nav-link active" aria-current="page" href="/profile">Profile</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/contact">Contact</a>
@@ -45,7 +45,7 @@
     </nav>
 </div>
 <div class="container mt-2">
-    <div class="row col-md-6 offset-md-3">
+    <div class="row col-md-8 offset-md-2">
         <div class="card">
             <div class="card-body">
                 <h5 class="mt-1 text-center card-title">Update your name</h5>
@@ -56,7 +56,6 @@
                         th:object="${user}"
                 >
                     <div class="form-group mb-1">
-                        <label class="control-label"></label>
                         <input
                                 class="form-control"
                                 id="name"
@@ -64,25 +63,14 @@
                                 th:value="${user.name}"
                                 type="text"
                         />
+                        <div class="text-center mt-2">
+                            <button type="submit" class="btn btn-outline-success btn-sm" >Confirm ✅</button>
+                            <a class="btn btn-outline-danger btn-sm" th:href="@{/profile}">Go back ❌</a>
+                        </div>
                         <p th:errors = "*{name}" class="text-danger"
                            th:if="${#fields.hasErrors('name')}"></p>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-success" >Confirm the name</button>
-                        </div>
-                        <div class="text-center"> Cancel the update?
-                            <a class="text-center" th:href="@{/profile}">Go back to profile</a>
-                        </div>
                     </div>
                 </form>
-                    <div class="card mb-2">
-                        <div class="card-header">
-                            📧 Email
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item" th:text="${user.email}"></li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

@@ -1,7 +1,7 @@
 package com.PayMyBuddy;
 
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.PasswordMatchesException;
+import com.PayMyBuddy.exception.MatchingPasswordException;
 import com.PayMyBuddy.validator.PasswordValidator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ public class PasswordValidatorTest {
     }
 
     @Test
-    public void passwordValidatorIsValidWithSamePasswordTest() throws PasswordMatchesException {
+    public void passwordValidatorIsValidWithSamePasswordTest() throws MatchingPasswordException {
         user.setMatchingPassword("passwordTest!");
 
         assertTrue(passwordValidatorTest.isValid(user));
@@ -31,7 +31,7 @@ public class PasswordValidatorTest {
     public void passwordValidatorIsValidWithoutSamePasswordTest() {
         user.setMatchingPassword("wrongPasswordTest!");
 
-        Exception exception = assertThrows(PasswordMatchesException.class, () -> passwordValidatorTest.isValid(user));
+        Exception exception = assertThrows(MatchingPasswordException.class, () -> passwordValidatorTest.isValid(user));
         assertEquals("The matching password doesn't match with the password", exception.getMessage());
     }
 
