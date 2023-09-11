@@ -76,6 +76,12 @@ public class PayMyBuddyController {
         return "transfer";
     }
 
+    @GetMapping("/connections")
+    public String connections(){
+        logger.info("request the connections page");
+        return "connections";
+    }
+
     @GetMapping("/profile")
     public String profile(Model model){
         logger.info("request the profile page");
