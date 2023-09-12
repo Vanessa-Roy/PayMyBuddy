@@ -27,9 +27,9 @@ public class PayMyBuddyController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/index")
+    @GetMapping("/home")
     public String home(){
-        return "index";
+        return "home";
     }
 
     @GetMapping("/register")

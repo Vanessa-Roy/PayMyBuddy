@@ -125,6 +125,13 @@
 				<version>0.8.10</version>
 				<executions>
 					<execution>
+						<id>jacoco-initialize-it</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+					</execution>
+					<execution>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
