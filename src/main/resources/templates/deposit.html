@@ -61,7 +61,9 @@
                         </div>
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item" th:text="${user.balance}">
+                        <li class="list-group-item">
+                            <span th:text="${#numbers.formatDecimal(user.balance,1,2)}"></span>
+                            <span>💲</span>
                         </li>
                     </ul>
                 </div>
@@ -78,6 +80,7 @@
                                 type="number"
                                 placeholder="🔢 Amount to transfer to my balance"
                                 min="0"
+                                step="0.01"
                                 required
                         />
                         <div class="text-center mt-2">
