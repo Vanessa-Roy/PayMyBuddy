@@ -4,6 +4,7 @@ import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.MatchingPasswordException;
+import com.PayMyBuddy.exception.NotEnoughtFundsException;
 import com.PayMyBuddy.exception.OldPasswordException;
 import com.PayMyBuddy.exception.UserAlreadyExistsException;
 import com.PayMyBuddy.repository.UserRepository;
@@ -68,6 +69,7 @@ public class UserService {
         UserDTO userDto = new UserDTO();
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
+        userDto.setBalance(user.getBalance());
         return userDto;
     }
 
@@ -94,5 +96,26 @@ public class UserService {
         existingUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
         userRepository.save(existingUser);
         logger.info("the password's user {} has been updated", existingUser.getEmail());
+    }
+
+    public void withdraw(Float amount) throws NotEnoughtFundsException {
+        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        Float currentUserBalance = existingUser.getBalance();
+        float newUserBalance = currentUserBalance - amount;
+        if (newUserBalance < 0) {
+            throw new NotEnoughtFundsException();
+        }
+        existingUser.setBalance(newUserBalance);
+        userRepository.save(existingUser);
+        logger.info("the balance's user {} has been updated", existingUser.getEmail());
+    }
+
+    public void deposit(Float amount) {
+        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        Float currentUserBalance = existingUser.getBalance();
+        float newUserBalance = currentUserBalance + amount;
+        existingUser.setBalance(newUserBalance);
+        userRepository.save(existingUser);
+        logger.info("the balance's user {} has been updated", existingUser.getEmail());
     }
 }

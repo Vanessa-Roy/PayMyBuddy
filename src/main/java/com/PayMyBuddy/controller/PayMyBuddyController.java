@@ -84,7 +84,8 @@ public class PayMyBuddyController {
     public String profile(Model model){
         logger.info("request the profile page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(auth.getName());
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         return "profile";
     }
@@ -123,7 +124,7 @@ public class PayMyBuddyController {
     }
 
     @PostMapping("/editPassword")
-    public String editName(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
+    public String editPassword(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         logger.info("request the password's update of the user {}", auth.getName());
 
@@ -136,6 +137,62 @@ public class PayMyBuddyController {
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "editPassword";
+        }
+    }
+
+    @GetMapping("/deposit")
+    public String deposit(Model model){
+        logger.info("request the deposit page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        float amount = 0;
+        model.addAttribute("amount", amount);
+        return "deposit";
+    }
+
+    @PostMapping("/deposit")
+    public String deposit(@ModelAttribute("amount") float amount, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        logger.info("request the deposit by the user {}", user.getName());
+        try {
+            userService.deposit(amount);
+            return "redirect:/profile?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "deposit";
+        }
+    }
+
+    @GetMapping("/withdraw")
+    public String withdraw(Model model){
+        logger.info("request the withdraw page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        float amount = 0;
+        model.addAttribute("amount", amount);
+        return "withdraw";
+    }
+
+    @PostMapping("/withdraw")
+    public String withdraw(@ModelAttribute("amount") float amount, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        logger.info("request the withdraw by the user {}", user.getName());
+        try {
+            userService.withdraw(amount);
+            return "redirect:/profile?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "withdraw";
         }
     }
 

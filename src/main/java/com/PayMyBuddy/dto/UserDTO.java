@@ -23,5 +23,8 @@ public class UserDTO {
 
     @Email
     private String email;
+
+    @Min(value = 0, message = "balance must contain digits")
+    private Float balance;
 }
 
