@@ -21,14 +21,14 @@ public class PasswordValidatorTest {
     }
 
     @Test
-    public void passwordValidatorIsValidWithSamePasswordTest() throws MatchingPasswordException {
+    public void passwordValidatorIsValidWithSamePasswordShouldPassTest() throws MatchingPasswordException {
         user.setMatchingPassword("passwordTest!");
 
         assertTrue(passwordValidatorTest.isValid(user));
     }
 
     @Test
-    public void passwordValidatorIsValidWithoutSamePasswordTest() {
+    public void passwordValidatorIsValidWithoutSamePasswordShouldFailTest() {
         user.setMatchingPassword("wrongPasswordTest!");
 
         Exception exception = assertThrows(MatchingPasswordException.class, () -> passwordValidatorTest.isValid(user));

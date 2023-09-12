@@ -11,14 +11,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
 import java.util.List;
 
 @Controller
@@ -89,31 +87,6 @@ public class PayMyBuddyController {
         User user = userService.loadUserByUsername(auth.getName());
         model.addAttribute("user", user);
         return "profile";
-    }
-
-    @GetMapping("/update")
-    public String update(Model model){
-        logger.info("request the update page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
-        model.addAttribute("user", user);
-        return "update";
-    }
-
-    @PostMapping("/update")
-    public String update(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
-        logger.info("request the update of the user {}", userDto.getName());
-        if (bindingResult.hasErrors()) {
-            return "update";
-        }
-        try {
-            userService.update(userDto);
-            return "redirect:/update?success";
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "update";
-        }
     }
 
     @GetMapping("/editName")

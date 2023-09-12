@@ -17,13 +17,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(PayMyBuddyApplication.class);
@@ -65,7 +63,7 @@ public class UserService {
         user.setBalance(0f);
 
         userRepository.save(user);
-        logger.info("the user has been created");
+        logger.info("the user {} has been created", user.getEmail());
     }
 
     public UserDTO mapToUserDto(User user){
@@ -75,36 +73,17 @@ public class UserService {
         return userDto;
     }
 
-    public void update(UserDTO userDto) throws UsernameNotFoundException, MatchingPasswordException {
-        User existingUser = loadUserByUsername(userDto.getEmail());
-
-        if(existingUser == null){
-            throw new UsernameNotFoundException(userDto.getEmail());
-        }
-
-        passwordValidator.isValid(userDto);
-
-        existingUser.setName(userDto.getName());
-        existingUser.setEmail(userDto.getEmail());
-        existingUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
-
-        userRepository.save(existingUser);
-        logger.info("the user has been updated");
-    }
-
     public void editName(UserDTO userDto) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = this.loadUserByUsername(auth.getName());
+        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
 
         existingUser.setName(userDto.getName());
 
         userRepository.save(existingUser);
-        logger.info("the name's user has been updated");
+        logger.info("the name's user {} has been updated", existingUser.getEmail());
     }
 
     public void editPassword(PasswordDTO passwordDTO) throws MatchingPasswordException, OldPasswordException {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = this.loadUserByUsername(auth.getName());
+        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
 
         if (!passwordDTO.getNewPassword().equals(passwordDTO.getMatchingPassword())) {
             throw new MatchingPasswordException();
@@ -116,6 +95,6 @@ public class UserService {
 
         existingUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
         userRepository.save(existingUser);
-        logger.info("the password's user has been updated");
+        logger.info("the password's user {} has been updated", existingUser.getEmail());
     }
 }
