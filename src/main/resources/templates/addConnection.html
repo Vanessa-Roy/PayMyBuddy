@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Pay My Buddy - Add Connection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/home}">
+            <img class="col-md-4" th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo"/>
+        </a>
+        <ul class="nav nav-pills justify-content-end">
+            <li class="nav-item">
+                <a class="nav-link" href="/home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/transfer">Transfer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/profile">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/contact">Contact</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">Log off</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="card-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/home">Home</a></li>
+            <li class="breadcrumb-item"><a href="/profile">Profile</a></li>
+            <li class="breadcrumb-item"><a href="/connections">Connections</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add Connection</li>
+        </ol>
+    </nav>
+</div>
+<div class="container mt-2">
+    <div class="row col-md-8 offset-md-2">
+        <div th:if="${errorMessage}">
+            <div class="alert alert-danger">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mt-1 text-center card-title">Add a Connection</h5>
+                <form
+                        method="post"
+                        role="form"
+                        th:action="@{/addConnection}"
+                >
+                    <div class="form-group mb-1">
+                        <input
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                type="email"
+                                placeholder="👥 Email from the Connection to add"
+                                required
+                        />
+                        <div class="text-center mt-2">
+                            <button type="submit" class="btn btn-outline-success btn-sm" >Confirm ✅</button>
+                            <a class="btn btn-outline-danger btn-sm" th:href="@{/connections}">Go back ❌</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

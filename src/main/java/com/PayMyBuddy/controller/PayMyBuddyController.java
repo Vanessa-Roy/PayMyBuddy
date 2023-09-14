@@ -75,9 +75,60 @@ public class PayMyBuddyController {
     }
 
     @GetMapping("/connections")
-    public String connections(){
+    public String connections(Model model){
         logger.info("request the connections page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        List<UserDTO> connections = userService.getConnection(user);
+        model.addAttribute("connections", connections);
         return "connections";
+    }
+
+    @GetMapping("/addConnection")
+    public String addConnection(Model model){
+        logger.info("request the add connection page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        return "addConnection";
+    }
+
+    @GetMapping("/deleteConnection")
+    public String deleteConnection(String email, Model model){
+        logger.info("request the delete connection page");
+        User connectionUser = userService.loadUserByUsername(email);
+        UserDTO user = userService.mapToUserDto(connectionUser);
+        model.addAttribute("user", user);
+        return "deleteConnection";
+    }
+
+    @PostMapping("/deleteConnection")
+    public String deleteConnection(String email1, String email2, Model model) {
+        logger.info("request the connection delete between the users {} and {}", email1, email2);
+        try {
+            userService.deleteConnection(email1, email2);
+            return "redirect:/connections?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "deleteConnection";
+        }
+    }
+
+    @PostMapping("/addConnection")
+    public String addConnection(@ModelAttribute("email") String email, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        logger.info("request a connection between the users {} and {}", user.getName(), email);
+        try {
+            userService.addConnection(user.getEmail(), email);
+            return "redirect:/connections?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "addConnection";
+        }
     }
 
     @GetMapping("/profile")

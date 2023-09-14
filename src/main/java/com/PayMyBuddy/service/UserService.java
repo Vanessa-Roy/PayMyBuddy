@@ -3,20 +3,21 @@ package com.PayMyBuddy.service;
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.MatchingPasswordException;
-import com.PayMyBuddy.exception.NotEnoughtFundsException;
-import com.PayMyBuddy.exception.OldPasswordException;
-import com.PayMyBuddy.exception.UserAlreadyExistsException;
+import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.validator.PasswordValidator;
+import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,7 @@ public class UserService {
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
         userDto.setBalance(user.getBalance());
+        userDto.setConnections(user.getConnections());
         return userDto;
     }
 
@@ -117,5 +119,44 @@ public class UserService {
         existingUser.setBalance(newUserBalance);
         userRepository.save(existingUser);
         logger.info("the balance's user {} has been updated", existingUser.getEmail());
+    }
+
+    public void addConnection(String emailUser1, String emailUser2) throws AlreadyExistingConnection {
+        User user1 = userRepository.findByEmail(emailUser1);
+
+        User user2 = userRepository.findByEmail(emailUser2);
+
+        if(user2.getConnections().contains(user1) || user1.getConnections().contains(user2)) {
+            throw new AlreadyExistingConnection();
+        }
+
+        user1.getConnections().add(user2);
+
+        userRepository.save(user1);
+        logger.info("the connection between user {} and user {} has been created", user1.getEmail(), user2.getEmail());
+    }
+
+    public List<UserDTO> getConnection(UserDTO user) {
+        Iterable<String> connections1 = userRepository.findConnectionsByUser2(user.getEmail());
+        List<User> connections2 = user.getConnections();
+        List<UserDTO> connections = new ArrayList<>();
+        connections1.forEach(connection1 -> connections.add(mapToUserDto(userRepository.findByEmail(connection1))));
+        connections2.forEach(connection2 -> connections.add(mapToUserDto(connection2)));
+        return connections;
+    }
+
+    public void deleteConnection(String emailUser1, String emailUser2) {
+        User user1 = userRepository.findByEmail(emailUser1);
+
+        User user2 = userRepository.findByEmail(emailUser2);
+
+        if (user2.getConnections().contains(user1)) {
+            user2.getConnections().remove(user1);
+            userRepository.save(user2);
+        } else {
+            user1.getConnections().remove(user2);
+            userRepository.save(user1);
+        }
+        logger.info("the connection between user {} and user {} has been deleted", user1.getEmail(), user2.getEmail());
     }
 }

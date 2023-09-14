@@ -21,10 +21,10 @@
         <a class="nav-link" href="/home">Home</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" aria-current="page" href="#">Transfer</a>
+        <a class="nav-link" href="/transfer">Transfer</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link active" href="/profile">Profile</a>
+        <a class="nav-link active" aria-current="page" href="#">Profile</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="/contact">Contact</a>
@@ -44,9 +44,43 @@
     </ol>
   </nav>
 </div>
-<div class="container">
-  <div class="row">
-    <h1 class="text-center"> Pay My Buddy Connections </h1>
+<div class="container mt-2">
+  <div class="row col-md-10 offset-md-1">
+
+    <div th:if="${param.success}">
+      <div class="alert alert-info">
+        You have successfully updated your connections!
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mt-1 text-center card-title">My Connections</h5>
+        <div class="border border-dark">
+        <table class="table table-striped mb-0">
+          <thead class="table-success">
+          <tr>
+            <th>Email</th> <th>Name</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="c:${connections}">
+            <td th:text="${c.email}"></td>
+            <td>
+              <span th:text="${c.name}"></span>
+              <span class="float-end">
+                <a class="btn btn-outline-success btn-sm" href="/contactConnection">✉️ Contact</a>
+                <a th:href="@{deleteConnection(email=${c.email})}" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+        </table>
+        </div>
+        <div class="text-center mt-2">
+          <a class="btn btn-primary text-center col-md-5 fs-5" href="/addConnection">Add Connection</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </body>

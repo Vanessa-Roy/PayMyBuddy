@@ -1,7 +1,11 @@
 package com.PayMyBuddy.dto;
 
+import com.PayMyBuddy.model.User;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Setter
@@ -26,5 +30,7 @@ public class UserDTO {
 
     @Min(value = 0, message = "balance must contain digits")
     private Float balance;
+
+    private List<User> connections = new ArrayList<>();
 }
 
