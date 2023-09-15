@@ -32,5 +32,12 @@ public class UserDTO {
     private Float balance;
 
     private List<User> connections = new ArrayList<>();
+
+    public UserDTO(String name, String password, String matchingPassword, String email) {
+        this.name = name;
+        this.password = password;
+        this.matchingPassword = matchingPassword;
+        this.email = email;
+    }
 }
 

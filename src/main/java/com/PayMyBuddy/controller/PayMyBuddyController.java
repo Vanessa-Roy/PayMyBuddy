@@ -7,6 +7,7 @@ import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.UserService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

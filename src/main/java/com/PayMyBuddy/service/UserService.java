@@ -105,7 +105,10 @@ public class UserService {
         logger.info("the password's user {} has been updated", existingUser.getEmail());
     }
 
-    public void withdraw(Float amount) throws NotEnoughtFundsException {
+    public void withdraw(Float amount) throws NotEnoughtFundsException, InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException();
+        }
         User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         Float currentUserBalance = existingUser.getBalance();
         float newUserBalance = currentUserBalance - amount;
@@ -117,11 +120,15 @@ public class UserService {
         logger.info("the balance's user {} has been updated", existingUser.getEmail());
     }
 
-    public void deposit(Float amount) {
+    public void deposit(Float amount) throws InvalidAmountException {
+        if (amount <= 0) {
+            throw new InvalidAmountException();
+        }
         User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         Float currentUserBalance = existingUser.getBalance();
         float newUserBalance = currentUserBalance + amount;
         existingUser.setBalance(newUserBalance);
+        System.out.println(existingUser.getBalance());
         userRepository.save(existingUser);
         logger.info("the balance's user {} has been updated", existingUser.getEmail());
     }

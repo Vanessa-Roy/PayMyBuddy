@@ -2,9 +2,7 @@ package com.PayMyBuddy;
 
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.exception.MatchingPasswordException;
-import com.PayMyBuddy.exception.OldPasswordException;
-import com.PayMyBuddy.exception.UserAlreadyExistsException;
+import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.service.UserService;
@@ -17,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -70,6 +69,7 @@ public class UserServiceTest {
         Exception exception = assertThrows(UserAlreadyExistsException.class, () -> userServiceTest.saveUser(userDTO));
         assertEquals("There is already an account registered with the same email", exception.getMessage());
         verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
     }
 
     @Test
@@ -100,6 +100,7 @@ public class UserServiceTest {
 
         Exception exception = assertThrows(OldPasswordException.class, () -> userServiceTest.editPassword(passwordDTO));
         assertEquals("The old password doesn't match with the registered password", exception.getMessage());
+        verify(userRepository, Mockito.never()).save(any(User.class));
     }
 
     @Test
@@ -111,6 +112,7 @@ public class UserServiceTest {
 
         Exception exception = assertThrows(MatchingPasswordException.class, () -> userServiceTest.editPassword(passwordDTO));
         assertEquals("The matching password doesn't match with the password", exception.getMessage());
+        verify(userRepository, Mockito.never()).save(any(User.class));
     }
 
     @Test
@@ -125,5 +127,61 @@ public class UserServiceTest {
         assertEquals("nameTest",user.getName());
         verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void withdrawShouldPassTest() throws NotEnoughtFundsException, InvalidAmountException {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
+        assertEquals(100f,user.getBalance());
+
+        userServiceTest.withdraw(50f);
+
+        assertEquals(50f,user.getBalance());
+        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void withdrawWithAmountGreaterThanBalanceShouldFailTest() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
+        assertEquals(100f,user.getBalance());
+
+        Exception exception = assertThrows(NotEnoughtFundsException.class, () ->         userServiceTest.withdraw(150f));
+        assertEquals("The amount on your balance is not sufficient", exception.getMessage());
+        assertEquals(100f,user.getBalance());
+        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    public void withdrawWithNegativeAmountShouldFailTest() {
+        Exception exception = assertThrows(InvalidAmountException.class, () ->         userServiceTest.withdraw(-50f));
+        verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void depositShouldPassTest() throws InvalidAmountException {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
+        assertEquals(100f,user.getBalance());
+
+        userServiceTest.deposit(50f);
+
+        assertEquals(150f,user.getBalance());
+        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    public void depositWithNegativeAmountShouldFailTest() {
+        Exception exception = assertThrows(InvalidAmountException.class, () ->         userServiceTest.deposit(-50f));
+        verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
     }
 }
