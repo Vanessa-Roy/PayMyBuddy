@@ -20,12 +20,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SpringBootTest
@@ -160,6 +161,7 @@ public class UserServiceTest {
     @Test
     public void withdrawWithNegativeAmountShouldFailTest() {
         Exception exception = assertThrows(InvalidAmountException.class, () ->         userServiceTest.withdraw(-50f));
+        assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.never()).save(any(User.class));
     }
@@ -181,7 +183,182 @@ public class UserServiceTest {
     @Test
     public void depositWithNegativeAmountShouldFailTest() {
         Exception exception = assertThrows(InvalidAmountException.class, () ->         userServiceTest.deposit(-50f));
+        assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.never()).save(any(User.class));
     }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionShouldPass() throws UserDoesntExistException, AlreadyExistingConnection {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        List<User> expectedConnections = new ArrayList<>(List.of(user2));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        userServiceTest.addConnection(user.getEmail(),user2.getEmail());
+
+        assertEquals(expectedConnections,user.getConnections());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionWithNotExistingUserShouldFail() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        List<User> expectedConnections = new ArrayList<>();
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(null);
+
+        Exception exception = assertThrows(UserDoesntExistException.class, () ->
+                userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("There is no account registered with this email", exception.getMessage());
+        assertEquals(expectedConnections,user.getConnections());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionWithExistingConnectionUser2ShouldFail() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>(List.of(user)));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        Exception exception = assertThrows(AlreadyExistingConnection.class, () ->
+                userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("The connection already exists between these two users", exception.getMessage());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionWithExistingConnectionUser1ShouldFail() {
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user2)));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        Exception exception = assertThrows(AlreadyExistingConnection.class, () ->
+                userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("The connection already exists between these two users", exception.getMessage());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionWithSameUserShouldFail() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user)));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        Exception exception = assertThrows(AlreadyExistingConnection.class, () ->
+                userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("The connection already exists between these two users", exception.getMessage());
+        verify(userRepository, Mockito.times(2)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void deleteConnectionUser2ShouldPass() throws NotExistingConnection {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>(List.of(user)));
+        List<User> expectedConnections = new ArrayList<>();
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        userServiceTest.deleteConnection(user.getEmail(),user2.getEmail());
+
+        assertEquals(expectedConnections,user.getConnections());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void deleteConnectionUser1ShouldPass() throws NotExistingConnection {
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user2)));
+        List<User> expectedConnections = new ArrayList<>();
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        userServiceTest.deleteConnection(user.getEmail(),user2.getEmail());
+
+        assertEquals(expectedConnections,user.getConnections());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.times(1)).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void deleteConnectionWithNotExistingConnectionShouldFail() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        Exception exception = assertThrows(NotExistingConnection.class, () ->
+                userServiceTest.deleteConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("The connection doesn't exist between these two users", exception.getMessage());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void getConnectionUser1ShouldPass() {
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
+        userDTO.getConnections().add(user2);
+        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.emptyList());
+
+        assertEquals(user2Dto.getEmail(),userServiceTest.getConnection(userDTO).get(0).getEmail());
+
+        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).findByEmail(user2.getEmail());
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void getConnectionUser2ShouldPass() {
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
+        user2Dto.getConnections().add(user);
+        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.singleton(user2.getEmail()));
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+
+        assertEquals(user2Dto.getEmail(),userServiceTest.getConnection(userDTO).get(0).getEmail());
+
+        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void getConnectionWithoutConnectionsShouldPass() {
+        List<UserDTO> expectedConnections = new ArrayList<>();
+        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.emptyList());
+
+        assertEquals(expectedConnections,userServiceTest.getConnection(userDTO));
+
+        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
+        verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
+    }
+
 }
