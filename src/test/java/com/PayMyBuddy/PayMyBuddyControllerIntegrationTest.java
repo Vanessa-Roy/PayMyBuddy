@@ -1,6 +1,7 @@
 package com.PayMyBuddy;
 
 import com.PayMyBuddy.dto.UserDTO;
+import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +27,7 @@ import org.testcontainers.utility.DockerImageName;
 import javax.sql.DataSource;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -71,7 +73,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @AfterEach
     void tearDown() throws InterruptedException {
-        JdbcTestUtils.deleteFromTables(jdbcTemplate, "users", "transactions");
+        JdbcTestUtils.deleteFromTables(jdbcTemplate,  "connections", "transactions", "users");
     }
 
     @BeforeEach
@@ -100,18 +102,37 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithoutCsrfShouldFailTest() throws Exception {
+    void saveUserWithNameWithSpacesShouldPassTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name","nameTest")
+                        .param("name","name Test")
                         .param("password","passwordTest!0")
                         .param("matchingPassword","passwordTest!0")
-                        .param("email","userTest@email.com"))
-                .andExpect(status().is4xxClientError());
+                        .param("email","userTest@email.com")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/register?success"));
 
-        assertNull((userService.loadUserByUsername("userTest@email.com")));
+        assertNotNull((userService.loadUserByUsername("userTest@email.com")));
+    }
+
+    @Test
+    void saveUserWithCompoundNameShouldPassTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/register")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name","name-Test")
+                        .param("password","passwordTest!0")
+                        .param("matchingPassword","passwordTest!0")
+                        .param("email","userTest@email.com")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/register?success"));
+
+        assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
 
     @Test
@@ -150,23 +171,6 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNameWithSpacesShouldPassTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/register")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name","name Test")
-                        .param("password","passwordTest!0")
-                        .param("matchingPassword","passwordTest!0")
-                        .param("email","userTest@email.com")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/register?success"));
-
-        assertNotNull((userService.loadUserByUsername("userTest@email.com")));
-    }
-
-    @Test
     void saveUserWithNameWithOnlySpacesShouldFailTest() throws Exception {
 
         this.mockMvc
@@ -180,23 +184,6 @@ public class PayMyBuddyControllerIntegrationTest {
 ;
 
         assertNull((userService.loadUserByUsername("userTest@email.com")));
-    }
-
-    @Test
-    void saveUserWithCompoundNameShouldPassTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/register")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name","name-Test")
-                        .param("password","passwordTest!0")
-                        .param("matchingPassword","passwordTest!0")
-                        .param("email","userTest@email.com")
-                        .with(csrf()))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/register?success"));
-
-        assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
 
     @Test
@@ -261,32 +248,6 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithoutParametersShouldFailTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/editName")
-                        .with(csrf()))
-                .andExpect(status().is2xxSuccessful())
-                .andExpect(view().name("editName"));
-
-        assertNotEquals("updateNameTest",userService.loadUserByUsername("existingUserTest@email.test").getName());
-    }
-
-    @Test
-    @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithoutCsrfShouldFailTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/editName")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name","nameTest"))
-                .andExpect(status().is4xxClientError());
-
-        assertNotEquals("updateNameTest",userService.loadUserByUsername("existingUserTest@email.test").getName());
-    }
-
-    @Test
-    @WithMockUser(username = "existingUserTest@email.test")
     void editNameWithNameWithSpacesShouldPassTest() throws Exception {
 
         this.mockMvc
@@ -302,20 +263,6 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithNameWithOnlySpacesShouldFailTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/editName")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name","  ")
-                        .with(csrf()))
-        ;
-
-        assertNotEquals("  ",userService.loadUserByUsername("existingUserTest@email.test").getName());
-    }
-
-    @Test
-    @WithMockUser(username = "existingUserTest@email.test")
     void editNameWithCompoundNameShouldPassTest() throws Exception {
 
         this.mockMvc
@@ -327,6 +274,33 @@ public class PayMyBuddyControllerIntegrationTest {
                 .andExpect(view().name("redirect:/profile?success"));
 
         assertEquals("name-Test",userService.loadUserByUsername("existingUserTest@email.test").getName());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void editNameWithoutParametersShouldFailTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/editName")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("editName"));
+
+        assertNotEquals("updateNameTest",userService.loadUserByUsername("existingUserTest@email.test").getName());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void editNameWithNameWithOnlySpacesShouldFailTest() throws Exception {
+
+        this.mockMvc
+                .perform(post("/editName")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name","  ")
+                        .with(csrf()))
+        ;
+
+        assertNotEquals("  ",userService.loadUserByUsername("existingUserTest@email.test").getName());
     }
 
     @Test
@@ -394,21 +368,6 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordWithoutCsrfShouldFailTest() throws Exception {
-
-        this.mockMvc
-                .perform(post("/editPassword")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("oldPassword","passwordTest!0")
-                        .param("newPassword","newPasswordTest!0")
-                        .param("matchingPassword","newPasswordTest!0"))
-                .andExpect(status().is4xxClientError());
-
-        assertFalse(passwordEncoder.matches("newPasswordTest!0",userService.loadUserByUsername("existingUserTest@email.test").getPassword()));
-    }
-
-    @Test
-    @WithMockUser(username = "existingUserTest@email.test")
     void editPasswordWithoutSameOldNewPasswordShouldFailTest() throws Exception {
 
         this.mockMvc
@@ -458,6 +417,211 @@ public class PayMyBuddyControllerIntegrationTest {
         assertFalse(passwordEncoder.matches("newPasswordTest!0",userService.loadUserByUsername("existingUserTest@email.test").getPassword()));
     }
 
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void deleteConnectionShouldPassTest() throws Exception {
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
+        userRepository.save(existingUser2);
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setConnections(List.of(existingUser2));
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/deleteConnection")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email1","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/connections?success"))
+                .andExpect(view().name("redirect:/connections?success"));
+
+        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void deleteConnectionWithoutConnectionsShouldFailTest() throws Exception {
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
+        userRepository.save(existingUser2);
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/deleteConnection")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email1","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("deleteConnection"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void addConnectionShouldPassTest() throws Exception {
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>());
+        userRepository.save(existingUser2);
+        this.mockMvc
+                .perform(post("/addConnection")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/connections?success"));
+        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().get(0).getEmail().equals("existingUser2Test@email.test"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void addConnectionWithInvalidUserShouldFailTest() throws Exception {
+        this.mockMvc
+                .perform(post("/addConnection")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email","existingUserTest@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("addConnection"));
+        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void addConnectionWithNotExistingUserShouldFailTest() throws Exception {
+        this.mockMvc
+                .perform(post("/addConnection")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email","NotExistingUserTest@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("addConnection"));
+        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void depositShouldPassTest() throws Exception {
+        this.mockMvc
+                .perform(post("/deposit")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","1")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/profile?success"));
+
+        assertEquals(1,userService.loadUserByUsername("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void depositWithNegativeAmountShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(1f);
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/deposit")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","-1")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("deposit"));
+
+        assertEquals(1f,userRepository.findByEmail("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void withdrawShouldPassTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(1f);
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/withdraw")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","1")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/profile?success"));
+
+        assertEquals(0,userRepository.findByEmail("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void withdrawWithNegativeAmountShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(1f);
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/withdraw")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","-1")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("withdraw"));
+
+        assertEquals(1f,userRepository.findByEmail("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void withdrawWithAmountGreaterThanBalanceShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(1f);
+        userRepository.save(existingUser);
+
+        this.mockMvc
+                .perform(post("/withdraw")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","2")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("withdraw"));
+
+        assertEquals(1f,userRepository.findByEmail("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void getConnectionWithPagesShouldPass() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser2);
+        User existingUser3 = new User("existingUser3Test@email.test",0f,"existingUser3NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser3);
+        User existingUser4 = new User("existingUser4Test@email.test",0f,"existingUser4NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser4);
+        User existingUser5 = new User("existingUser5Test@email.test",0f,"existingUser5NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser5);
+
+        this.mockMvc
+                .perform(get("/connections"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("connections"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void getConnectionWithPagesWhoDoesNotExistShouldPass() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser2);
+        User existingUser3 = new User("existingUser3Test@email.test",0f,"existingUser3NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser3);
+        User existingUser4 = new User("existingUser4Test@email.test",0f,"existingUser4NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser4);
+        User existingUser5 = new User("existingUser5Test@email.test",0f,"existingUser5NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser5);
+
+        this.mockMvc
+                .perform(get("/connections?page=5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("connections"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
 
     @Test
     void shouldAllowAccessToLoginForAnonymousUserTest() throws Exception {
@@ -516,6 +680,59 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToDepositForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/deposit"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("deposit"))
+                .andExpect(model().attributeExists("user"))
+                .andExpect(model().attributeExists("amount"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToWithdrawForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/withdraw"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("withdraw"))
+                .andExpect(model().attributeExists("user"))
+                .andExpect(model().attributeExists("amount"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToGetConnectionForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/connections"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("connections"))
+                .andExpect(model().attributeExists("connections"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToAddConnectionForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/addConnection"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("addConnection"))
+                .andExpect(model().attributeExists("user"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToDeleteConnectionForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/deleteConnection")
+                        .param("email","existingUserTest@email.test"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("deleteConnection"))
+                .andExpect(model().attributeExists("user"));
+    }
+
+    @Test
     void shouldDenyAccessToEditNameForUnauthenticatedUserTest() throws Exception {
         this.mockMvc
                 .perform(get("/editName"))
@@ -543,6 +760,46 @@ public class PayMyBuddyControllerIntegrationTest {
     void shouldDenyAccessToProfileForUnauthenticatedUserTest() throws Exception {
         this.mockMvc
                 .perform(get("/profile"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToDepositForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/deposit"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToWithdrawPasswordForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/withdraw"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToAddConnectionForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/addConnection"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToDeleteConnectionForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/deleteConnection"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToConnectionForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/connections"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }

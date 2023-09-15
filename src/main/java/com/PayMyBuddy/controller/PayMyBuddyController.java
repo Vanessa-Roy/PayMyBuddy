@@ -147,6 +147,7 @@ public class PayMyBuddyController {
             userService.deleteConnection(email1, user.getEmail());
             return "redirect:/connections?success";
         } catch (Exception e) {
+            model.addAttribute("user", user);
             model.addAttribute("errorMessage", e.getMessage());
             return "deleteConnection";
         }
