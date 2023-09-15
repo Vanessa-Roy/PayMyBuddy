@@ -11,6 +11,10 @@ import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,12 +126,16 @@ public class UserService {
         logger.info("the balance's user {} has been updated", existingUser.getEmail());
     }
 
-    public void addConnection(String emailUser1, String emailUser2) throws AlreadyExistingConnection {
+    public void addConnection(String emailUser1, String emailUser2) throws AlreadyExistingConnection, UserDoesntExistException {
         User user1 = userRepository.findByEmail(emailUser1);
 
         User user2 = userRepository.findByEmail(emailUser2);
 
-        if(user2.getConnections().contains(user1) || user1.getConnections().contains(user2)) {
+        if(user2 == null){
+            throw new UserDoesntExistException();
+        }
+
+        if(user2.getConnections().contains(user1) || user1.getConnections().contains(user2) || user2.equals(user1)) {
             throw new AlreadyExistingConnection();
         }
 
@@ -145,18 +154,39 @@ public class UserService {
         return connections;
     }
 
-    public void deleteConnection(String emailUser1, String emailUser2) {
+    public Page<UserDTO> getPaginatedConnection(Pageable pageable, List<UserDTO> connections) {
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+        List<UserDTO> list;
+
+        if (connections.size() < startItem) {
+            list = Collections.emptyList();
+        } else {
+            int toIndex = Math.min(startItem + pageSize, connections.size());
+            list = connections.subList(startItem, toIndex);
+        }
+
+        return new PageImpl<UserDTO>(list, PageRequest.of(currentPage, pageSize), connections.size());
+    }
+
+    public void deleteConnection(String emailUser1, String emailUser2) throws NotExistingConnection {
         User user1 = userRepository.findByEmail(emailUser1);
 
         User user2 = userRepository.findByEmail(emailUser2);
 
-        if (user2.getConnections().contains(user1)) {
-            user2.getConnections().remove(user1);
-            userRepository.save(user2);
+        if (user2.getConnections().contains(user1) || user1.getConnections().contains(user2)) {
+            if (user2.getConnections().contains(user1)) {
+                user2.getConnections().remove(user1);
+                userRepository.save(user2);
+            } else {
+                user1.getConnections().remove(user2);
+                userRepository.save(user1);
+            }
+            logger.info("the connection between user {} and user {} has been deleted", user1.getEmail(), user2.getEmail());
         } else {
-            user1.getConnections().remove(user2);
-            userRepository.save(user1);
+            logger.error("the connection between user {} and user {} doesn't exist", user1.getEmail(), user2.getEmail());
+            throw new NotExistingConnection();
         }
-        logger.info("the connection between user {} and user {} has been deleted", user1.getEmail(), user2.getEmail());
     }
 }

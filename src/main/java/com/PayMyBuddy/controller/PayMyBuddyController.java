@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 public class PayMyBuddyController {
@@ -75,13 +79,26 @@ public class PayMyBuddyController {
     }
 
     @GetMapping("/connections")
-    public String connections(Model model){
+    public String connections(Model model, Optional<Integer> page, Optional<Integer> size){
+
+        int currentPage = page.orElse(1);
+        int pageSize = size.orElse(3);
         logger.info("request the connections page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
         List<UserDTO> connections = userService.getConnection(user);
-        model.addAttribute("connections", connections);
+        final Page<UserDTO> pageConnections = userService.getPaginatedConnection(PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Order.asc("name"))), connections);
+        model.addAttribute("connections", pageConnections);
+
+        int totalPages = pageConnections.getTotalPages();
+        if (totalPages > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                    .boxed()
+                    .collect(Collectors.toList());
+            model.addAttribute("pageNumbers", pageNumbers);
+        }
+
         return "connections";
     }
 
@@ -93,27 +110,6 @@ public class PayMyBuddyController {
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         return "addConnection";
-    }
-
-    @GetMapping("/deleteConnection")
-    public String deleteConnection(String email, Model model){
-        logger.info("request the delete connection page");
-        User connectionUser = userService.loadUserByUsername(email);
-        UserDTO user = userService.mapToUserDto(connectionUser);
-        model.addAttribute("user", user);
-        return "deleteConnection";
-    }
-
-    @PostMapping("/deleteConnection")
-    public String deleteConnection(String email1, String email2, Model model) {
-        logger.info("request the connection delete between the users {} and {}", email1, email2);
-        try {
-            userService.deleteConnection(email1, email2);
-            return "redirect:/connections?success";
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "deleteConnection";
-        }
     }
 
     @PostMapping("/addConnection")
@@ -128,6 +124,30 @@ public class PayMyBuddyController {
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "addConnection";
+        }
+    }
+
+    @GetMapping("/deleteConnection")
+    public String getDeleteConnection(String email, Model model){
+        logger.info("request the delete connection page");
+        User connectionUser = userService.loadUserByUsername(email);
+        UserDTO user = userService.mapToUserDto(connectionUser);
+        model.addAttribute("user", user);
+        return "deleteConnection";
+    }
+
+    @PostMapping("/deleteConnection")
+    public String postDeleteConnection(String email1, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        logger.info("request the connection delete between the users {} and {}", email1, user.getEmail());
+        try {
+            userService.deleteConnection(email1, user.getEmail());
+            return "redirect:/connections?success";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "deleteConnection";
         }
     }
 
