@@ -72,8 +72,9 @@
             <td>
               <span th:text="${c.name}"></span>
               <span class="float-end">
-                <a class="btn btn-outline-success btn-sm" href="/contactConnection">✉️ Contact</a>
-                <a th:href="@{deleteConnection(email=${c.email})}" class="btn btn-outline-danger btn-sm">🗑️ Delete</a>
+                <a class="btn btn-outline-success btn-sm" th:href=@{sendMoney(email=${c.email})} alt="test">🔁 Send Money</a>
+                <a class="btn btn-outline-success btn-sm" th:href=@{sendMessage(email=${c.email})} title="Send Message">✉️</a>
+                <a th:href="@{deleteConnection(email=${c.email})}" class="btn btn-outline-danger btn-sm" title="delete">🗑️</a>
               </span>
             </td>
           </tr>

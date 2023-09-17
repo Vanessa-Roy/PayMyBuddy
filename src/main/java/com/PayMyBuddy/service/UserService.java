@@ -196,4 +196,12 @@ public class UserService {
             throw new NotExistingConnection();
         }
     }
+
+    public void sendMoney(String email1, String email) {
+        //do it 18/09/2023
+    }
+
+    public void sendMessage(String email1, String email) {
+        //do it 18/09/2023
+    }
 }

@@ -269,6 +269,56 @@ public class PayMyBuddyController {
         }
     }
 
+    @GetMapping("/sendMoney")
+    public String getSendMoney(String email, Model model){
+        logger.info("request the send money page");
+        User connectionUser = userService.loadUserByUsername(email);
+        UserDTO user = userService.mapToUserDto(connectionUser);
+        model.addAttribute("user", user);
+        return "sendMoney";
+    }
+
+    @PostMapping("/sendMoney")
+    public String postSendMoney(String email1, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        logger.info("request the money transfer between the users {} and {}", email1, user.getEmail());
+        try {
+            userService.sendMoney(email1, user.getEmail());
+            return "redirect:/transfer?success";
+        } catch (Exception e) {
+            model.addAttribute("user", user);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "sendMoney";
+        }
+    }
+
+    @GetMapping("/sendMessage")
+    public String getSendMessage(String email, Model model){
+        logger.info("request the send message page");
+        User connectionUser = userService.loadUserByUsername(email);
+        UserDTO user = userService.mapToUserDto(connectionUser);
+        model.addAttribute("user", user);
+        return "sendMessage";
+    }
+
+    @PostMapping("/sendMessage")
+    public String postSendMessage(String email1, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        logger.info("request the message transfer between the users {} and {}", email1, user.getEmail());
+        try {
+            userService.sendMessage(email1, user.getEmail());
+            return "redirect:/contact?success";
+        } catch (Exception e) {
+            model.addAttribute("user", user);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "sendMessage";
+        }
+    }
+
     @GetMapping("/contact")
     public String contact(){
         return "contact";
