@@ -2,7 +2,9 @@ package com.PayMyBuddy.controller;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
+import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
+import com.PayMyBuddy.model.Transaction;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.UserService;
 
@@ -74,8 +76,26 @@ public class PayMyBuddyController {
     }
 
     @GetMapping("/transfer")
-    public String transfer(){
+    public String transfer(Model model, Optional<Integer> page, Optional<Integer> size){
+
+        int currentPage = page.orElse(1);
+        int pageSize = size.orElse(3);
         logger.info("request the transfer page");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        List<TransactionDTO> transactions = userService.getTransaction(user);
+        final Page<TransactionDTO> pageTransactions = userService.getPaginatedTransactions(PageRequest.of(currentPage - 1, pageSize), transactions);
+        model.addAttribute("transactions", pageTransactions);
+
+        int totalPages = pageTransactions.getTotalPages();
+        if (totalPages > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                    .boxed()
+                    .collect(Collectors.toList());
+            model.addAttribute("pageNumbers", pageNumbers);
+        }
+
         return "transfer";
     }
 

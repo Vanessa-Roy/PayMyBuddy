@@ -2,6 +2,7 @@ package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
+import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.Transaction;
@@ -13,20 +14,14 @@ import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,6 +79,14 @@ public class UserService {
         userDto.setBalance(user.getBalance());
         userDto.setConnections(user.getConnections());
         return userDto;
+    }
+
+    public TransactionDTO mapToTransactionDto(Transaction transaction){
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setAmount(transaction.getAmount());
+        transactionDTO.setDescription(transaction.getDescription());
+        transactionDTO.setDate(transaction.getDate());
+        return transactionDTO;
     }
 
     public void editName(UserDTO userDto) {
@@ -167,6 +170,36 @@ public class UserService {
         return connections;
     }
 
+    public List<TransactionDTO> getTransaction(UserDTO user) {
+        List<TransactionDTO> transactions = new ArrayList<>();
+
+        List<Transaction> transaction1 = transactionRepository.findByReceiverUser(userRepository.findByEmail(user.getEmail()));
+
+        for (Transaction transaction : transaction1) {
+            TransactionDTO transaction1DTO = new TransactionDTO();
+            transaction1DTO.setConnections(transaction.getSenderUser());
+            transaction1DTO.setDate(transaction.getDate());
+            transaction1DTO.setAmount(transaction.getAmount());
+            transaction1DTO.setDescription(transaction.getDescription());
+            transactions.add(transaction1DTO);
+        }
+
+        List<Transaction> transaction2 = transactionRepository.findBySenderUser(userRepository.findByEmail(user.getEmail()));
+
+        for (Transaction transaction : transaction2) {
+            TransactionDTO transaction2DTO = new TransactionDTO();
+            transaction2DTO.setConnections(transaction.getReceiverUser());
+            transaction2DTO.setDate(transaction.getDate());
+            transaction2DTO.setAmount(-transaction.getAmount());
+            transaction2DTO.setDescription(transaction.getDescription());
+            transactions.add(transaction2DTO);
+        }
+
+        transactions.sort(Comparator.comparing(TransactionDTO::getDate));
+
+        return transactions;
+    }
+
     public Page<UserDTO> getPaginatedConnection(Pageable pageable, List<UserDTO> connections) {
         int pageSize = pageable.getPageSize();
         int currentPage = pageable.getPageNumber();
@@ -181,6 +214,22 @@ public class UserService {
         }
 
         return new PageImpl<>(list, PageRequest.of(currentPage, pageSize), connections.size());
+    }
+
+    public Page<TransactionDTO> getPaginatedTransactions(Pageable pageable, List<TransactionDTO> transactions) {
+        int pageSize = pageable.getPageSize();
+        int currentPage = pageable.getPageNumber();
+        int startItem = currentPage * pageSize;
+        List<TransactionDTO> list;
+
+        if (transactions.size() < startItem) {
+            list = Collections.emptyList();
+        } else {
+            int toIndex = Math.min(startItem + pageSize, transactions.size());
+            list = transactions.subList(startItem, toIndex);
+        }
+
+        return new PageImpl<>(list, PageRequest.of(currentPage, pageSize), transactions.size());
     }
 
     public void deleteConnection(String emailUser1, String emailUser2) throws NotExistingConnection {
