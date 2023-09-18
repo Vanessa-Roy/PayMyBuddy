@@ -59,10 +59,10 @@
           </h5>
         </div>
         <div class="mt-4 border border-dark">
-        <table class="table table-striped mb-0">
+        <table style="width:100%" class="table table-striped mb-0 text-center text-break">
           <thead class="table-success">
           <tr>
-            <th>Email</th> <th>Name</th>
+            <th style="width:45%">Email</th> <th style="width:20%">Name</th> <th style="width:35%"></th>
           </tr>
           </thead>
           <tbody>
@@ -70,9 +70,11 @@
             <td th:text="${c.email}"></td>
             <td>
               <span th:text="${c.name}"></span>
-              <span class="float-end">
-                <a class="btn btn-outline-success btn-sm" th:href=@{sendMoney(email=${c.email})} alt="test">🔁 Send Money</a>
-                <a th:href="@{deleteConnection(email=${c.email})}" class="btn btn-outline-danger btn-sm" title="delete">🗑️</a>
+            </td>
+            <td>
+            <span class="float-end">
+                <a class="btn btn-outline-success btn-sm mb-1" th:href=@{sendMoney(email=${c.email})} alt="test">🔁 Send Money</a>
+                <a th:href="@{deleteConnection(email=${c.email})}" class="btn btn-outline-danger btn-sm mb-1" title="delete">🗑️</a>
               </span>
             </td>
           </tr>
@@ -87,10 +89,23 @@
                 <span aria-hidden="true">&laquo;</span>
               </a>
             </li>
-            <li class="page-item" th:each="pageNumber:${pageNumbers}">
+            <li th:if="${connections.number>3}">
+              <a title="Previous Pages" class="page-link"
+                 th:href="@{/contact(size=${connections.size}, page=${connections.number-3})}"
+              >...</a>
+            </li>
+            <li class="page-item"
+                th:each="pageNumber:${pageNumbers}"
+                th:if="${pageNumber-1 > connections.number-4 AND pageNumber-1 < connections.number+4}"
+            >
               <a th:href="@{/contact(size=${connections.size}, page=${pageNumber})}"
                  th:text=${pageNumber}
                  th:class="${pageNumber==connections.number + 1 ? 'btn btn-primary':'page-link'}"></a>
+            </li>
+            <li th:if="${connections.number+4<pageNumbers.size}">
+              <a title="Next Pages" class="page-link"
+                 th:href="@{/contact(size=${connections.size}, page=${connections.number+5})}"
+              >...</a>
             </li>
             <li th:class="${connections.totalPages==connections.number + 1 ? 'page-item disabled':'page-item'}">
               <a class="page-link" th:href="@{/contact(size=${connections.size}, page=${connections.number + 2})}" aria-label="Next">

@@ -26,6 +26,7 @@ public class UserDTO {
     private String matchingPassword;
 
     @Email
+    @Size(min = 5, max = 320, message = "the size must be between 5 and 320")
     private String email;
 
     @Min(value = 0, message = "balance must contain digits")
