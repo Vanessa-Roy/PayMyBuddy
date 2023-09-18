@@ -220,8 +220,6 @@ public class PayMyBuddyController {
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
-        float amount = 0;
-        model.addAttribute("amount", amount);
         return "deposit";
     }
 
@@ -248,8 +246,6 @@ public class PayMyBuddyController {
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
-        float amount = 0;
-        model.addAttribute("amount", amount);
         return "withdraw";
     }
 
@@ -273,22 +269,29 @@ public class PayMyBuddyController {
     public String getSendMoney(String email, Model model){
         logger.info("request the send money page");
         User connectionUser = userService.loadUserByUsername(email);
-        UserDTO user = userService.mapToUserDto(connectionUser);
+        UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
+        model.addAttribute("receiverUser", connectionUserDto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         return "sendMoney";
     }
 
     @PostMapping("/sendMoney")
-    public String postSendMoney(String email1, Model model) {
+    public String postSendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("description") String description, String email1, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
-        logger.info("request the money transfer between the users {} and {}", email1, user.getEmail());
+        model.addAttribute("user", user);
+        logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());
         try {
-            userService.sendMoney(email1, user.getEmail());
+            userService.sendMoney(amount, description, email1, user.getEmail());
             return "redirect:/transfer?success";
         } catch (Exception e) {
-            model.addAttribute("user", user);
+            User connectionUser = userService.loadUserByUsername(email1);
+            UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
+            model.addAttribute("receiverUser", connectionUserDto);
             model.addAttribute("errorMessage", e.getMessage());
             return "sendMoney";
         }

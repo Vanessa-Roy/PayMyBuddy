@@ -4,6 +4,8 @@ import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.*;
+import com.PayMyBuddy.model.Transaction;
+import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.validator.PasswordValidator;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +39,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -138,7 +144,7 @@ public class UserService {
 
         User user2 = userRepository.findByEmail(emailUser2);
 
-        if(user2 == null){
+        if(user1 == null || user2 == null){
             throw new UserDoesntExistException();
         }
 
@@ -197,8 +203,51 @@ public class UserService {
         }
     }
 
-    public void sendMoney(String email1, String email) {
-        //do it 18/09/2023
+    public void sendMoney(float amount, String description, String receiverEmail, String senderEmail) throws InvalidAmountException, UserDoesntExistException, NotEnoughtFundsException, NotExistingConnection {
+        if (amount <= 0) {
+            throw new InvalidAmountException();
+        }
+
+        User senderUser = userRepository.findByEmail(senderEmail);
+
+        User receiverUser = userRepository.findByEmail(receiverEmail);
+
+        if(senderEmail == null || receiverEmail == null){
+            throw new UserDoesntExistException();
+        }
+
+        if(senderUser.getConnections().contains(receiverUser) || receiverUser.getConnections().contains(senderUser) || senderUser.equals(receiverUser)) {
+            Float currentSenderUserBalance = senderUser.getBalance();
+            Float currentReceiverUserBalance = receiverUser.getBalance();
+
+            float newSenderUserBalance = currentSenderUserBalance - amount;
+
+            if (newSenderUserBalance < 0) {
+                throw new NotEnoughtFundsException();
+            }
+
+            float newReceiverUserBalance = currentReceiverUserBalance + amount;
+
+            senderUser.setBalance(newSenderUserBalance);
+            receiverUser.setBalance(newReceiverUserBalance);
+
+            userRepository.save(senderUser);
+            userRepository.save(receiverUser);
+
+            Transaction transaction = new Transaction();
+            transaction.setAmount(amount);
+            transaction.setReceiverUser(receiverUser);
+            transaction.setSenderUser(senderUser);
+            transaction.setDate(LocalDate.now());
+            transaction.setDescription(description);
+
+            transactionRepository.save(transaction);
+
+            logger.info("The money transfer about {}$ between the users {} and {} has been made", amount, receiverEmail, senderEmail);
+            logger.info("The transaction about {}$ between the users {} and {} has been created", amount, receiverEmail, senderEmail);
+        } else {
+            throw new NotExistingConnection();
+        }
     }
 
 }

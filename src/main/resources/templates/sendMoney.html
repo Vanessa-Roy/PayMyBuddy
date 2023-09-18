@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
->
+      xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Pay My Buddy - Send Money</title>
@@ -54,10 +54,24 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="mt-1 text-center card-title">Send Money</h5>
+                <div class="card mb-2">
+                    <div class="card-header">
+                        💰 My Balance
+                        <div class="float-end">
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <span th:text="${#numbers.formatDecimal(user.balance,1,2)}"></span>
+                            <span>💲</span>
+                        </li>
+                    </ul>
+                </div>
+                <h5 class="mt-1 text-center card-title">To</h5>
                 <form
                         method="post"
                         role="form"
-                        th:action="@{/sendMoney(email1=${user.email})}"
+                        th:action="@{/sendMoney(email1=${receiverUser.email})}"
                 >
                     <div class="form-group mb-1">
                         <div class="card mb-2">
@@ -65,7 +79,7 @@
                                 📧 Email
                             </div>
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.email}"></li>
+                                <li class="list-group-item" th:text="${receiverUser.email}"></li>
                             </ul>
                         </div>
                         <div class="card mb-2">
@@ -73,7 +87,7 @@
                                 👤 Name
                             </div>
                             <ul class="list-group list-group-flush">
-                                <li class="list-group-item" th:text="${user.name}"></li>
+                                <li class="list-group-item" th:text="${receiverUser.name}"></li>
                             </ul>
                         </div>
                         <div class="form-group mb-1">
@@ -88,6 +102,19 @@
                                     required
                                     autofocus
                             />
+                        </div>
+                        <div class="form-group mb-1">
+                            <textarea
+                                    class="form-control"
+                                    id="description"
+                                    name="description"
+                                    type="text"
+                                    placeholder="🔠 Description of the transaction"
+                                    rows="5"
+                                    cols="33"
+                                    maxlength="500"
+                                    required
+                            /></textarea>
                         </div>
                         <div class="text-center mt-2">
                             <button type="submit" class="btn btn-outline-success btn-sm" >Confirm ✅</button>
