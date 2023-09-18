@@ -174,7 +174,7 @@ public class UserService {
             list = connections.subList(startItem, toIndex);
         }
 
-        return new PageImpl<UserDTO>(list, PageRequest.of(currentPage, pageSize), connections.size());
+        return new PageImpl<>(list, PageRequest.of(currentPage, pageSize), connections.size());
     }
 
     public void deleteConnection(String emailUser1, String emailUser2) throws NotExistingConnection {
@@ -201,7 +201,4 @@ public class UserService {
         //do it 18/09/2023
     }
 
-    public void sendMessage(String email1, String email) {
-        //do it 18/09/2023
-    }
 }

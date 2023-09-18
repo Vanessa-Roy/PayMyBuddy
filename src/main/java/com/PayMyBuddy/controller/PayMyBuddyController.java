@@ -79,12 +79,12 @@ public class PayMyBuddyController {
         return "transfer";
     }
 
-    @GetMapping("/connections")
-    public String connections(Model model, Optional<Integer> page, Optional<Integer> size){
+    @GetMapping("/contact")
+    public String contact(Model model, Optional<Integer> page, Optional<Integer> size){
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(3);
-        logger.info("request the connections page");
+        logger.info("request the contact page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
@@ -100,7 +100,7 @@ public class PayMyBuddyController {
             model.addAttribute("pageNumbers", pageNumbers);
         }
 
-        return "connections";
+        return "contact";
     }
 
     @GetMapping("/addConnection")
@@ -293,36 +293,4 @@ public class PayMyBuddyController {
             return "sendMoney";
         }
     }
-
-    @GetMapping("/sendMessage")
-    public String getSendMessage(String email, Model model){
-        logger.info("request the send message page");
-        User connectionUser = userService.loadUserByUsername(email);
-        UserDTO user = userService.mapToUserDto(connectionUser);
-        model.addAttribute("user", user);
-        return "sendMessage";
-    }
-
-    @PostMapping("/sendMessage")
-    public String postSendMessage(String email1, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
-        logger.info("request the message transfer between the users {} and {}", email1, user.getEmail());
-        try {
-            userService.sendMessage(email1, user.getEmail());
-            return "redirect:/contact?success";
-        } catch (Exception e) {
-            model.addAttribute("user", user);
-            model.addAttribute("errorMessage", e.getMessage());
-            return "sendMessage";
-        }
-    }
-
-    @GetMapping("/contact")
-    public String contact(){
-        return "contact";
-    }
-
-
 }

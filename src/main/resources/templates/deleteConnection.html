@@ -24,10 +24,10 @@
                 <a class="nav-link" href="/transfer">Transfer</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/profile">Profile</a>
+                <a class="nav-link" href="/profile">Profile</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/contact">Contact</a>
+                <a class="nav-link active" aria-current="page" href="/contact">Contact</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Log off</a>
@@ -39,8 +39,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/home">Home</a></li>
-            <li class="breadcrumb-item"><a href="/profile">Profile</a></li>
-            <li class="breadcrumb-item"><a href="/connections">Connections</a></li>
+            <li class="breadcrumb-item"><a href="/contact">Contact</a></li>
             <li class="breadcrumb-item active" aria-current="page">Delete Connection</li>
         </ol>
     </nav>
@@ -79,7 +78,7 @@
                         </div>
                         <div class="text-center mt-2">
                             <button type="submit" class="btn btn-outline-success btn-sm" >Confirm ✅</button>
-                            <a class="btn btn-outline-danger btn-sm" th:href="@{/connections}">Go back ❌</a>
+                            <a class="btn btn-outline-danger btn-sm" th:href="@{/contact}">Go back ❌</a>
                         </div>
                     </div>
                 </form>
