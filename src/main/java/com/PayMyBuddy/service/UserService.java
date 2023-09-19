@@ -6,22 +6,27 @@ import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.Transaction;
+import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
-import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.validator.PasswordValidator;
-import jakarta.persistence.Query;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,14 +84,6 @@ public class UserService {
         userDto.setBalance(user.getBalance());
         userDto.setConnections(user.getConnections());
         return userDto;
-    }
-
-    public TransactionDTO mapToTransactionDto(Transaction transaction){
-        TransactionDTO transactionDTO = new TransactionDTO();
-        transactionDTO.setAmount(transaction.getAmount());
-        transactionDTO.setDescription(transaction.getDescription());
-        transactionDTO.setDate(transaction.getDate());
-        return transactionDTO;
     }
 
     public void editName(UserDTO userDto) {
@@ -195,7 +192,7 @@ public class UserService {
             transactions.add(transaction2DTO);
         }
 
-        transactions.sort(Comparator.comparing(TransactionDTO::getDate));
+        transactions.sort(Comparator.comparing(TransactionDTO::getDate).reversed());
 
         return transactions;
     }
@@ -252,6 +249,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public void sendMoney(float amount, String description, String receiverEmail, String senderEmail) throws InvalidAmountException, UserDoesntExistException, NotEnoughtFundsException, NotExistingConnection {
         if (amount <= 0) {
             throw new InvalidAmountException();
@@ -265,7 +263,11 @@ public class UserService {
             throw new UserDoesntExistException();
         }
 
-        if(senderUser.getConnections().contains(receiverUser) || receiverUser.getConnections().contains(senderUser) || senderUser.equals(receiverUser)) {
+        if(senderUser.equals(receiverUser)) {
+            throw new NotExistingConnection();
+        }
+
+        if(senderUser.getConnections().contains(receiverUser) || receiverUser.getConnections().contains(senderUser)) {
             Float currentSenderUserBalance = senderUser.getBalance();
             Float currentReceiverUserBalance = receiverUser.getBalance();
 

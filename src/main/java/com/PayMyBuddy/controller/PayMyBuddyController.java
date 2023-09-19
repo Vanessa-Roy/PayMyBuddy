@@ -4,23 +4,25 @@ import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
-import com.PayMyBuddy.model.Transaction;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.UserService;
-
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -85,6 +87,10 @@ public class PayMyBuddyController {
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);
         List<TransactionDTO> transactions = userService.getTransaction(user);
+        List<UserDTO> connections = userService.getConnection(user);
+        model.addAttribute("connections", connections);
+        TransactionDTO transactionDTO = new TransactionDTO();
+        model.addAttribute("transaction", transactionDTO);
         final Page<TransactionDTO> pageTransactions = userService.getPaginatedTransactions(PageRequest.of(currentPage - 1, pageSize), transactions);
         model.addAttribute("transactions", pageTransactions);
 
@@ -97,6 +103,25 @@ public class PayMyBuddyController {
         }
 
         return "transfer";
+    }
+
+    @PostMapping("/transfer")
+    public String sendMoney(@Valid @ModelAttribute("transaction") TransactionDTO transactionDTO, BindingResult bindingResult, @ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User existingUser = userService.loadUserByUsername(auth.getName());
+        UserDTO user = userService.mapToUserDto(existingUser);
+        model.addAttribute("user", user);
+        logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());
+        try {
+            userService.sendMoney(amount, ("transaction " + LocalDate.now().toString()), email1, user.getEmail());
+            return "redirect:/transfer?success";
+        } catch (Exception e) {
+            User connectionUser = userService.loadUserByUsername(email1);
+            UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
+            model.addAttribute("receiverUser", connectionUserDto);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "transfer";
+        }
     }
 
     @GetMapping("/contact")
@@ -141,7 +166,7 @@ public class PayMyBuddyController {
         logger.info("request a connection between the users {} and {}", user.getName(), email);
         try {
             userService.addConnection(user.getEmail(), email);
-            return "redirect:/connections?success";
+            return "redirect:/contact?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "addConnection";
@@ -165,7 +190,7 @@ public class PayMyBuddyController {
         logger.info("request the connection delete between the users {} and {}", email1, user.getEmail());
         try {
             userService.deleteConnection(email1, user.getEmail());
-            return "redirect:/connections?success";
+            return "redirect:/contact?success";
         } catch (Exception e) {
             model.addAttribute("user", user);
             model.addAttribute("errorMessage", e.getMessage());
