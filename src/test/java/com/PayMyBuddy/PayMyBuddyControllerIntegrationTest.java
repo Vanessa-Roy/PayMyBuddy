@@ -1,5 +1,6 @@
 package com.PayMyBuddy;
 
+import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
@@ -27,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import javax.sql.DataSource;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,6 +88,9 @@ public class PayMyBuddyControllerIntegrationTest {
     void setUpTest() throws Exception {
         UserDTO existingUser = new UserDTO("existingUserNameTest","passwordTest!0","passwordTest!0","existingUserTest@email.test", 0f, new ArrayList<>());
         userService.saveUser(existingUser);
+
+        UserDTO existingUser2 = new UserDTO("existingUser2NameTest","passwordTest!0","passwordTest!0","existingUser2Test@email.test", 0f, new ArrayList<>());
+        userService.saveUser(existingUser2);
     }
 
     @Autowired
@@ -473,7 +478,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/contact?success"));
-        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().get(0).getEmail().equals("existingUser2Test@email.test"));
+        assertEquals("existingUser2Test@email.test", userRepository.findByEmail("existingUserTest@email.test").getConnections().get(0).getEmail());
     }
 
     @Test
@@ -486,7 +491,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("addConnection"));
-        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+        assertEquals(0, userRepository.findByEmail("existingUserTest@email.test").getConnections().size());
     }
 
     @Test
@@ -499,7 +504,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("addConnection"));
-        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+        assertEquals(0, userRepository.findByEmail("existingUserTest@email.test").getConnections().size());
     }
 
     @Test
@@ -586,6 +591,134 @@ public class PayMyBuddyControllerIntegrationTest {
                 .andExpect(view().name("withdraw"));
 
         assertEquals(1f,userRepository.findByEmail("existingUserTest@email.test").getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void postSendMoneyShouldPassTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser.setBalance(10f);
+        existingUser.getConnections().add(existingUser2);
+        userRepository.save(existingUser);
+        this.mockMvc
+                .perform(post("/sendMoney")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","10f")
+                        .param("description","transactionTest")
+                        .param("email1","existingUser2Test@email.test")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/transfer?success"));
+
+        assertEquals(1,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
+        assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
+        assertEquals(10f,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void postSendMoneyWithInvalidAmountShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser.getConnections().add(existingUser2);
+        userRepository.save(existingUser);
+        this.mockMvc
+                .perform(post("/sendMoney")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","10f")
+                        .param("description","transactionTest")
+                        .param("email1","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("sendMoney"));
+
+        assertEquals(0,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
+        assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
+        assertEquals(0,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void postSendMoneyWithInvalidUserShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        this.mockMvc
+                .perform(post("/sendMoney")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("amount","10f")
+                        .param("description","transactionTest")
+                        .param("email1","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("sendMoney"));
+
+        assertEquals(0,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
+        assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void sendMoneyShouldPassTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser.setBalance(10f);
+        existingUser.getConnections().add(existingUser2);
+        userRepository.save(existingUser);
+        userRepository.save(existingUser2);
+        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", -10f, existingUser2);
+        this.mockMvc
+                .perform(post("/transfer")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("transaction", String.valueOf(transactionDTO))
+                        .param("amount", "10f")
+                        .param("connections","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/transfer?success"));
+
+        assertEquals(1,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
+        assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
+        assertEquals(10f,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void sendMoneyWithInvalidAmountShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser.setBalance(10f);
+        existingUser.getConnections().add(existingUser2);
+        userRepository.save(existingUser);
+        userRepository.save(existingUser2);
+        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", 10f, existingUser2);
+        this.mockMvc
+                .perform(post("/transfer")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("transaction", String.valueOf(transactionDTO))
+                        .param("amount", "-10f")
+                        .param("connections","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("error"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void sendMoneyWithInvalidUserShouldFailTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser.setBalance(10f);
+        userRepository.save(existingUser);
+        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", -10f, existingUser2);
+        this.mockMvc
+                .perform(post("/transfer")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("transaction", String.valueOf(transactionDTO))
+                        .param("amount", "10f")
+                        .param("connections","existingUser2Test@email.test")
+                        .with(csrf()))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(view().name("error"));
     }
 
 }

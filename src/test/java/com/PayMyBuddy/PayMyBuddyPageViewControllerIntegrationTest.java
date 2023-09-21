@@ -31,12 +31,11 @@ import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Testcontainers
-public class PayMyBuddyViewPageControllerIntegrationTest {
+public class PayMyBuddyPageViewControllerIntegrationTest {
 
     @Autowired
     private DataSource dataSource;
@@ -185,6 +184,28 @@ public class PayMyBuddyViewPageControllerIntegrationTest {
                 .andExpect(model().attributeExists("user"));
     }
 
+/*    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToTransferForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/transfer"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("transfer"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("transactions"));
+    }*/
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToSendMoneyForAuthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/sendMoney")
+                        .param("email","existingUserTest@email.test"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("sendMoney"))
+                .andExpect(model().attributeExists("user"));
+    }
+
     @Test
     void shouldDenyAccessToEditNameForUnauthenticatedUserTest() throws Exception {
         this.mockMvc
@@ -253,6 +274,22 @@ public class PayMyBuddyViewPageControllerIntegrationTest {
     void shouldDenyAccessToConnectionForUnauthenticatedUserTest() throws Exception {
         this.mockMvc
                 .perform(get("/connections"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToTransferForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/transfer"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void shouldDenyAccessToSendMoneyForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/sendMoney"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }

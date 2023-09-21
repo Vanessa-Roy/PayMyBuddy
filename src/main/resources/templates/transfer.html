@@ -61,6 +61,11 @@
                 You have successfully sent your transaction!
             </div>
         </div>
+        <div th:if="${errorMessage}">
+            <div class="alert alert-danger">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
         <div class="card border border-0">
             <h5 class="mt-1 card-title mb-0">Send Money
                 <a class="float-end btn btn-primary col-3" href="/addConnection">Add Connection</a>

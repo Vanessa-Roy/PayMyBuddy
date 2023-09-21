@@ -58,11 +58,8 @@ public class PayMyBuddyController {
             transactionService.sendMoney(amount, ("transaction " + LocalDate.now().toString()), email1, user.getEmail());
             return "redirect:/transfer?success";
         } catch (Exception e) {
-            User connectionUser = userService.loadUserByUsername(email1);
-            UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
-            model.addAttribute("receiverUser", connectionUserDto);
             model.addAttribute("errorMessage", e.getMessage());
-            return "transfer";
+            return "error";
         }
     }
 

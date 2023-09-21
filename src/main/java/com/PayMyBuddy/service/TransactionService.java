@@ -95,7 +95,7 @@ public class TransactionService {
 
         User receiverUser = userRepository.findByEmail(receiverEmail);
 
-        if(senderEmail == null || receiverEmail == null){
+        if(senderUser == null || receiverUser == null){
             throw new UserDoesntExistException();
         }
 

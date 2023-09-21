@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+  <meta charset="UTF-8">
+  <title>Pay My Buddy - Transfer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+        crossorigin="anonymous">
+  <style>
+        .btn-success, .table-success {
+    background-color: #5cb95c !important;
+    border-color: #5cb95c !important;
+    }
+            .btn-success:hover {
+    background-color: #6dbd54 !important;
+    border-color: #6dbd54 !important;
+    }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" th:href="@{/home}">
+      <img class="col-md-4" th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo"/>
+    </a>
+    <ul class="nav nav-pills justify-content-end">
+      <li class="nav-item">
+        <a class="nav-link active" href="/home">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" aria-current="page" href="#">Transfer</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/profile">Profile</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/contact">Contact</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Log off</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<div class="card-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/home">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Error</li>
+    </ol>
+  </nav>
+</div>
+<div class="container mt-2">
+  <div class="row col-md-12">
+    <div th:if="${errorMessage}">
+      <div class="alert alert-danger">
+        <span th:text="${errorMessage}"></span>
+      </div>
+    </div>
+    <div class="card border border-0">
+      <h5 class="mt-1 card-title mb-0">❌ An Error occurred ❌</h5>
+    </div>
+  </div>
+</div>
+</body>
+</html>
