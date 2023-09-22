@@ -131,31 +131,31 @@
                 <nav aria-label="Transactions result pages">
                     <ul class="pagination justify-content-center mt-1">
                         <li th:class="${0==transactions.number ? 'page-item disabled':'page-item'}">
-                            <a class="page-link" th:href="@{/transfer(size=${transactions.size}, page=${transactions.number})}"
+                            <a class="page-link" th:href="@{/transfer(page=${transactions.number})}"
                                th:class="${pageNumber==transactions.number + 1 ? 'btn btn-primary':'page-link'}"aria-label="Previous">
                                 <span aria-hidden="true">&laquo;</span>
                             </a>
                         </li>
                         <li th:if="${transactions.number>3}">
                             <a title="Previous Pages" class="page-link"
-                               th:href="@{/transfer(size=${transactions.size}, page=${transactions.number-3})}"
+                               th:href="@{/transfer(page=${transactions.number-3})}"
                             >...</a>
                         </li>
                         <li class="page-item"
                             th:each="pageNumber:${pageNumbers}"
                             th:if="${pageNumber-1 > transactions.number-4 AND pageNumber-1 < transactions.number+4}"
                         >
-                            <a th:href="@{/transfer(size=${transactions.size}, page=${pageNumber})}"
+                            <a th:href="@{/transfer(page=${pageNumber})}"
                                th:text=${pageNumber}
                                th:class="${pageNumber==transactions.number + 1 ? 'btn btn-primary':'page-link'}"></a>
                         </li>
                         <li th:if="${transactions.number+4<pageNumbers.size}">
                             <a title="Next Pages" class="page-link"
-                               th:href="@{/transfer(size=${transactions.size}, page=${transactions.number+5})}"
+                               th:href="@{/transfer(page=${transactions.number+5})}"
                             >...</a>
                         </li>
                         <li th:class="${transactions.totalPages==transactions.number + 1 ? 'page-item disabled':'page-item'}">
-                            <a class="page-link" th:href="@{/transfer(size=${transactions.size}, page=${transactions.number + 2})}" aria-label="Next">
+                            <a class="page-link" th:href="@{/transfer(page=${transactions.number + 2})}" aria-label="Next">
                                 <span aria-hidden="true">&raquo;</span>
                             </a>
                         </li>

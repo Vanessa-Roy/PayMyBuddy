@@ -20,10 +20,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -113,57 +117,63 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionSenderUserShouldPass() {
+    public void getTransactionsSenderUserShouldPass() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
-        when(transactionRepository.findByReceiverUser(user)).thenReturn(new ArrayList<>());
-        when(transactionRepository.findBySenderUser(user)).thenReturn(new ArrayList<>(List.of(transaction)));
+        when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of(transaction)));
+        List<TransactionDTO> expectedResult = new ArrayList<>(List.of(
+                new TransactionDTO(
+                        transaction.getDate(),
+                        transaction.getDescription(),
+                        -transaction.getAmount(),
+                        transaction.getReceiverUser())
+        ));
 
-        List<TransactionDTO> result = transactionServiceTest.getTransaction(userDTO);
+        Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        assertEquals(1, result.size());
-        assertEquals(-10f, result.get(0).getAmount());
-        assertEquals("transactionTest", result.get(0).getDescription());
-        assertEquals(user2, result.get(0).getConnections());
-        verify(transactionRepository, Mockito.times(1)).findBySenderUser(user);
-        verify(transactionRepository, Mockito.times(1)).findByReceiverUser(user);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(transactionRepository, Mockito.times(1)).findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3));
     }
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionReceiveUserShouldPass() {
-        user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
-        User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user2,user);
+    public void getTransactionsReceiverUserShouldPass() {
+        user = new User("email@test.com", 100f, "userTest", "passwordTest0!", new ArrayList<>());
+        User user2 = new User("email2@test.com", 100f, "user2Test", "passwordTest0!", new ArrayList<>(List.of(user)));
+        Transaction transaction = new Transaction(1, LocalDate.now(), "transactionTest", 10f, user2, user);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
-        when(transactionRepository.findByReceiverUser(user)).thenReturn(new ArrayList<>(List.of(transaction)));
-        when(transactionRepository.findBySenderUser(user)).thenReturn(new ArrayList<>());
+        when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of(transaction)));
+        List<TransactionDTO> expectedResult = new ArrayList<>(List.of(
+                new TransactionDTO(
+                        transaction.getDate(),
+                        transaction.getDescription(),
+                        transaction.getAmount(),
+                        transaction.getSenderUser())
+        ));
 
-        List<TransactionDTO> result = transactionServiceTest.getTransaction(userDTO);
+        Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        assertEquals(1, result.size());
-        assertEquals(10f, result.get(0).getAmount());
-        assertEquals("transactionTest", result.get(0).getDescription());
-        assertEquals(user2, result.get(0).getConnections());
-        verify(transactionRepository, Mockito.times(1)).findBySenderUser(user);
-        verify(transactionRepository, Mockito.times(1)).findByReceiverUser(user);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(transactionRepository, Mockito.times(1)).findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3));
     }
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionWithoutTransactionShouldPass() {
+    public void getTransactionsWithoutTransactionShouldPass() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
-        when(transactionRepository.findByReceiverUser(any(User.class))).thenReturn(new ArrayList<>());
-        when(transactionRepository.findBySenderUser(any(User.class))).thenReturn(new ArrayList<>());
-        List<TransactionDTO> expectedResult = new ArrayList<>();
+        when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(Collections.emptyList()));
+        List<TransactionDTO> expectedResult = new ArrayList<>(List.of());
 
-        assertEquals(expectedResult,transactionServiceTest.getTransaction(userDTO));
+        Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        verify(transactionRepository, Mockito.times(1)).findBySenderUser(user);
-        verify(transactionRepository, Mockito.times(1)).findByReceiverUser(user);
+        assertEquals(0, result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(transactionRepository, Mockito.times(1)).findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3));
     }
 
     @Test

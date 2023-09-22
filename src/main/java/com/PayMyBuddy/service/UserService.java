@@ -5,6 +5,7 @@ import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.User;
+import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.validator.PasswordValidator;
 import org.apache.logging.log4j.LogManager;
@@ -33,6 +34,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;

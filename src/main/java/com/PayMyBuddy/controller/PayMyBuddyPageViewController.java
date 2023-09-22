@@ -5,6 +5,7 @@ import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
+import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.service.TransactionService;
 import com.PayMyBuddy.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +36,9 @@ public class PayMyBuddyPageViewController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
     @GetMapping("/home")
     public String home(){
         return "home";
@@ -47,14 +51,6 @@ public class PayMyBuddyPageViewController {
         return "register";
     }
 
-    @GetMapping("/users")
-    public String users(Model model){
-        logger.info("request the users page");
-        List<UserDTO> users = userService.findAllUsers();
-        model.addAttribute("user", users);
-        return "users";
-    }
-
     @GetMapping("/login")
     public String login(){
         logger.info("request the login page");
@@ -62,22 +58,27 @@ public class PayMyBuddyPageViewController {
     }
 
     @GetMapping("/transfer")
-    public String transfer(Model model, Optional<Integer> page, Optional<Integer> size){
-
-        int currentPage = page.orElse(1);
-        int pageSize = size.orElse(3);
+    public String transfer(Model model, Optional<Integer> page){
         logger.info("request the transfer page");
+        // to get the current user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
-        List<TransactionDTO> transactions = transactionService.getTransaction(user);
-        List<UserDTO> connections = userService.getConnection(user);
-        model.addAttribute("connections", connections);
+        User currentUser = userService.loadUserByUsername(auth.getName());
+
+        // the following code handles the send Money functionality into the view
+        UserDTO currentUserDTO = userService.mapToUserDto(currentUser);
+        List<UserDTO> connections = userService.getConnection(currentUserDTO);
+        model.addAttribute("connections", connections);// to set the dropdown of connections into the view
         TransactionDTO transactionDTO = new TransactionDTO();
         model.addAttribute("transaction", transactionDTO);
-        final Page<TransactionDTO> pageTransactions = transactionService.getPaginatedTransactions(PageRequest.of(currentPage - 1, pageSize), transactions);
-        model.addAttribute("transactions", pageTransactions);
 
+        // the following code handles the transactions pagination
+        int currentPage = page.orElse(1);
+        final Page<TransactionDTO> pageTransactions = transactionService.getTransactions(
+                currentUser.getEmail(),
+                PageRequest.of(currentPage - 1, 3, Sort
+                                .by(Sort.Direction.DESC,"date")
+                                .and(Sort.by(Sort.Direction.ASC,"amount"))));
+        model.addAttribute("transactions", pageTransactions);
         int totalPages = pageTransactions.getTotalPages();
         if (totalPages > 0) {
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)

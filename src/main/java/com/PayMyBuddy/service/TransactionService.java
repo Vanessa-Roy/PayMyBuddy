@@ -2,7 +2,6 @@ package com.PayMyBuddy.service;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.TransactionDTO;
-import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.InvalidAmountException;
 import com.PayMyBuddy.exception.NotEnoughtFundsException;
 import com.PayMyBuddy.exception.NotExistingConnection;
@@ -16,7 +15,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,8 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -39,50 +35,34 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public List<TransactionDTO> getTransaction(UserDTO user) {
-        List<TransactionDTO> transactions = new ArrayList<>();
+    public Page<TransactionDTO> getTransactions(String userEmail, Pageable pageable) {
 
-        List<Transaction> transaction1 = transactionRepository.findByReceiverUser(userRepository.findByEmail(user.getEmail()));
+        User currentUser = userRepository.findByEmail(userEmail);
+        Page<Transaction> transactions = transactionRepository.findBySenderUserOrReceiverUser(currentUser, currentUser, pageable);
 
-        for (Transaction transaction : transaction1) {
-            TransactionDTO transaction1DTO = new TransactionDTO();
-            transaction1DTO.setConnections(transaction.getSenderUser());
-            transaction1DTO.setDate(transaction.getDate());
-            transaction1DTO.setAmount(transaction.getAmount());
-            transaction1DTO.setDescription(transaction.getDescription());
-            transactions.add(transaction1DTO);
+        List<TransactionDTO> transactionsDTO = new ArrayList<>();
+
+        for (Transaction transaction : transactions) {
+            if (transaction.getSenderUser().equals(currentUser)) {
+                transactionsDTO.add(new TransactionDTO(
+                        transaction.getDate(),
+                        transaction.getDescription(),
+                        -transaction.getAmount(), // we set a negative amount when the current user is the sender
+                        transaction.getReceiverUser() // we set the connection without the current user
+                        )
+                );
+            } else if (transaction.getReceiverUser().equals(currentUser)) {
+                transactionsDTO.add(new TransactionDTO(
+                                transaction.getDate(),
+                                transaction.getDescription(),
+                                transaction.getAmount(),
+                                transaction.getSenderUser()
+                        )
+                );
+            }
         }
 
-        List<Transaction> transaction2 = transactionRepository.findBySenderUser(userRepository.findByEmail(user.getEmail()));
-
-        for (Transaction transaction : transaction2) {
-            TransactionDTO transaction2DTO = new TransactionDTO();
-            transaction2DTO.setConnections(transaction.getReceiverUser());
-            transaction2DTO.setDate(transaction.getDate());
-            transaction2DTO.setAmount(-transaction.getAmount());
-            transaction2DTO.setDescription(transaction.getDescription());
-            transactions.add(transaction2DTO);
-        }
-
-        transactions.sort(Comparator.comparing(TransactionDTO::getDate).reversed());
-
-        return transactions;
-    }
-
-    public Page<TransactionDTO> getPaginatedTransactions(Pageable pageable, List<TransactionDTO> transactions) {
-        int pageSize = pageable.getPageSize();
-        int currentPage = pageable.getPageNumber();
-        int startItem = currentPage * pageSize;
-        List<TransactionDTO> list;
-
-        if (transactions.size() < startItem) {
-            list = Collections.emptyList();
-        } else {
-            int toIndex = Math.min(startItem + pageSize, transactions.size());
-            list = transactions.subList(startItem, toIndex);
-        }
-
-        return new PageImpl<>(list, PageRequest.of(currentPage, pageSize), transactions.size());
+        return new PageImpl<>(transactionsDTO, pageable, transactions.getTotalElements());
     }
 
     @Transactional

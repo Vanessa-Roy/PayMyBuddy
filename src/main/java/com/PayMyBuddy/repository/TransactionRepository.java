@@ -2,6 +2,8 @@ package com.PayMyBuddy.repository;
 
 import com.PayMyBuddy.model.Transaction;
 import com.PayMyBuddy.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findBySenderUser(User user);
 
     List<Transaction> findByReceiverUser(User user);
+
+    Page<Transaction> findBySenderUserOrReceiverUser(User senderUser, User receiverUser, Pageable pageable);
+
 }
