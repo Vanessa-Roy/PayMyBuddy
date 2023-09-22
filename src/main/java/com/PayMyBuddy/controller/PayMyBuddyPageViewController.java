@@ -80,12 +80,10 @@ public class PayMyBuddyPageViewController {
                                 .and(Sort.by(Sort.Direction.ASC,"amount"))));
         model.addAttribute("transactions", pageTransactions);
         int totalPages = pageTransactions.getTotalPages();
-        if (totalPages > 0) {
-            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
-                    .boxed()
-                    .collect(Collectors.toList());
-            model.addAttribute("pageNumbers", pageNumbers);
-        }
+        List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                .boxed()
+                .collect(Collectors.toList());
+        model.addAttribute("pageNumbers", pageNumbers);
         return "transfer";
     }
 
@@ -104,12 +102,10 @@ public class PayMyBuddyPageViewController {
                         Sort.Direction.ASC,"user1")));
         model.addAttribute("connections", pageConnections);
         int totalPages = pageConnections.getTotalPages();
-        if (totalPages > 0) {
-            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
-                    .boxed()
-                    .collect(Collectors.toList());
+        List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                .boxed()
+                .collect(Collectors.toList());
             model.addAttribute("pageNumbers", pageNumbers);
-        }
         return "contact";
     }
 

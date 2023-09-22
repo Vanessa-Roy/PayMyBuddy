@@ -184,7 +184,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(model().attributeExists("user"));
     }
 
-/*    @Test
+    @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToTransferForAuthenticatedUserTest() throws Exception {
         this.mockMvc
@@ -193,7 +193,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(view().name("transfer"))
                 .andExpect(model().attributeExists("connections"))
                 .andExpect(model().attributeExists("transactions"));
-    }*/
+    }
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
@@ -287,6 +287,14 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     }
 
     @Test
+    void shouldDenyAccessToContactForUnauthenticatedUserTest() throws Exception {
+        this.mockMvc
+                .perform(get("/contact"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
     void shouldDenyAccessToSendMoneyForUnauthenticatedUserTest() throws Exception {
         this.mockMvc
                 .perform(get("/sendMoney"))
@@ -329,6 +337,18 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
 
         this.mockMvc
                 .perform(get("/contact?page=5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("contact"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void getConnectionWithNoConnectionShouldPass() throws Exception {
+
+        this.mockMvc
+                .perform(get("/contact"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("contact"))
                 .andExpect(model().attributeExists("connections"))

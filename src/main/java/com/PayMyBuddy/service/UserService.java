@@ -114,7 +114,6 @@ public class UserService {
     public Page<UserDTO> getConnections(String userEmail, Pageable pageable) {
 
         Page<String> connections = userRepository.findAllConnectionsByEmail(userEmail, pageable);
-
         List<UserDTO> connectionsDTO = new ArrayList<>();
 
         for (String connection : connections) {

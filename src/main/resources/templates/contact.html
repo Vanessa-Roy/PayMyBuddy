@@ -80,10 +80,13 @@
           </tr>
         </tbody>
         </table>
+          <h5 th:if="${pageNumbers.size < 1}" class="text-center">Not connections yet</h5>
         </div>
         <nav aria-label="Connections result pages">
           <ul class="pagination justify-content-center mt-1">
-            <li th:class="${0==connections.number ? 'page-item disabled':'page-item'}">
+            <li th:if="${pageNumbers.size > 1}"
+                th:class="${0==connections.number ? 'page-item disabled':'page-item'}"
+            >
               <a class="page-link" th:href="@{/contact(page=${connections.number})}"
                  th:class="${pageNumber==connections.number + 1 ? 'btn btn-primary':'page-link'}"aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
@@ -107,7 +110,9 @@
                  th:href="@{/contact(page=${connections.number+5})}"
               >...</a>
             </li>
-            <li th:class="${connections.totalPages==connections.number + 1 ? 'page-item disabled':'page-item'}">
+            <li th:if="${pageNumbers.size > 1}"
+                th:class="${connections.totalPages==connections.number + 1 ? 'page-item disabled':'page-item'}"
+            >
               <a class="page-link" th:href="@{/contact(page=${connections.number + 2})}" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
               </a>
