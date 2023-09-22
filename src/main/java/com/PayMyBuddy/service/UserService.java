@@ -13,14 +13,12 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -106,29 +104,24 @@ public class UserService {
         logger.info("the password's user {} has been updated", existingUser.getEmail());
     }
 
-    public List<UserDTO> getConnection(UserDTO user) {
-        Iterable<String> connections1 = userRepository.findConnectionsByUser2(user.getEmail());
-        List<User> connections2 = user.getConnections();
+    public List<UserDTO> getConnections(UserDTO user) {
+        Iterable<String> connectionsEmails = userRepository.findAllConnectionsByEmail(user.getEmail());
         List<UserDTO> connections = new ArrayList<>();
-        connections1.forEach(connection1 -> connections.add(mapToUserDto(userRepository.findByEmail(connection1))));
-        connections2.forEach(connection2 -> connections.add(mapToUserDto(connection2)));
+        connectionsEmails.forEach(email -> connections.add(mapToUserDto(userRepository.findByEmail(email))));
         return connections;
     }
 
-    public Page<UserDTO> getPaginatedConnection(Pageable pageable, List<UserDTO> connections) {
-        int pageSize = pageable.getPageSize();
-        int currentPage = pageable.getPageNumber();
-        int startItem = currentPage * pageSize;
-        List<UserDTO> list;
+    public Page<UserDTO> getConnections(String userEmail, Pageable pageable) {
 
-        if (connections.size() < startItem) {
-            list = Collections.emptyList();
-        } else {
-            int toIndex = Math.min(startItem + pageSize, connections.size());
-            list = connections.subList(startItem, toIndex);
+        Page<String> connections = userRepository.findAllConnectionsByEmail(userEmail, pageable);
+
+        List<UserDTO> connectionsDTO = new ArrayList<>();
+
+        for (String connection : connections) {
+            connectionsDTO.add(mapToUserDto(userRepository.findByEmail(connection)));
         }
 
-        return new PageImpl<>(list, PageRequest.of(currentPage, pageSize), connections.size());
+        return new PageImpl<>(connectionsDTO, pageable, connections.getTotalElements());
     }
 
     public void addConnection(String emailUser1, String emailUser2) throws AlreadyExistingConnection, UserDoesntExistException {

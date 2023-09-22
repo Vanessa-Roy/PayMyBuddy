@@ -15,6 +15,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -268,12 +271,16 @@ public class UserServiceTest {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         userDTO.getConnections().add(user2);
-        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.emptyList());
+        when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of("email2@test.com")));
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+        List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
 
-        assertEquals(user2Dto.getEmail(),userServiceTest.getConnection(userDTO).get(0).getEmail());
+        Page<UserDTO> result = userServiceTest.getConnections(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
-        verify(userRepository, Mockito.never()).findByEmail(user2.getEmail());
+        assertEquals(1,result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3));
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
     }
 
     @Test
@@ -282,24 +289,27 @@ public class UserServiceTest {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         user2Dto.getConnections().add(user);
-        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.singleton(user2.getEmail()));
+        when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of("email2@test.com")));
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+        List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
 
-        assertEquals(user2Dto.getEmail(),userServiceTest.getConnection(userDTO).get(0).getEmail());
+        Page<UserDTO> result = userServiceTest.getConnections(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
+        assertEquals(1,result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3));
         verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
     }
 
     @Test
     @WithMockUser(username = "email@test.com")
     public void getConnectionWithoutConnectionsShouldPass() {
-        List<UserDTO> expectedConnections = new ArrayList<>();
-        when(userRepository.findConnectionsByUser2(userDTO.getEmail())).thenReturn(Collections.emptyList());
+        when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(Collections.emptyList()));
 
-        assertEquals(expectedConnections,userServiceTest.getConnection(userDTO));
+        Page<UserDTO> result = userServiceTest.getConnections(userDTO.getEmail(), PageRequest.of(0, 3));
 
-        verify(userRepository, Mockito.times(1)).findConnectionsByUser2(userDTO.getEmail());
+        assertEquals(0,result.getTotalElements());
+        verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3));
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
     }
 

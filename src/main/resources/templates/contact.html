@@ -84,31 +84,31 @@
         <nav aria-label="Connections result pages">
           <ul class="pagination justify-content-center mt-1">
             <li th:class="${0==connections.number ? 'page-item disabled':'page-item'}">
-              <a class="page-link" th:href="@{/contact(size=${connections.size}, page=${connections.number})}"
+              <a class="page-link" th:href="@{/contact(page=${connections.number})}"
                  th:class="${pageNumber==connections.number + 1 ? 'btn btn-primary':'page-link'}"aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
               </a>
             </li>
             <li th:if="${connections.number>3}">
               <a title="Previous Pages" class="page-link"
-                 th:href="@{/contact(size=${connections.size}, page=${connections.number-3})}"
+                 th:href="@{/contact(page=${connections.number-3})}"
               >...</a>
             </li>
             <li class="page-item"
                 th:each="pageNumber:${pageNumbers}"
                 th:if="${pageNumber-1 > connections.number-4 AND pageNumber-1 < connections.number+4}"
             >
-              <a th:href="@{/contact(size=${connections.size}, page=${pageNumber})}"
+              <a th:href="@{/contact(page=${pageNumber})}"
                  th:text=${pageNumber}
                  th:class="${pageNumber==connections.number + 1 ? 'btn btn-primary':'page-link'}"></a>
             </li>
             <li th:if="${connections.number+4<pageNumbers.size}">
               <a title="Next Pages" class="page-link"
-                 th:href="@{/contact(size=${connections.size}, page=${connections.number+5})}"
+                 th:href="@{/contact(page=${connections.number+5})}"
               >...</a>
             </li>
             <li th:class="${connections.totalPages==connections.number + 1 ? 'page-item disabled':'page-item'}">
-              <a class="page-link" th:href="@{/contact(size=${connections.size}, page=${connections.number + 2})}" aria-label="Next">
+              <a class="page-link" th:href="@{/contact(page=${connections.number + 2})}" aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
               </a>
             </li>

@@ -66,7 +66,7 @@ public class PayMyBuddyPageViewController {
 
         // the following code handles the send Money functionality into the view
         UserDTO currentUserDTO = userService.mapToUserDto(currentUser);
-        List<UserDTO> connections = userService.getConnection(currentUserDTO);
+        List<UserDTO> connections = userService.getConnections(currentUserDTO);
         model.addAttribute("connections", connections);// to set the dropdown of connections into the view
         TransactionDTO transactionDTO = new TransactionDTO();
         model.addAttribute("transaction", transactionDTO);
@@ -86,23 +86,23 @@ public class PayMyBuddyPageViewController {
                     .collect(Collectors.toList());
             model.addAttribute("pageNumbers", pageNumbers);
         }
-
         return "transfer";
     }
 
     @GetMapping("/contact")
-    public String contact(Model model, Optional<Integer> page, Optional<Integer> size){
-
-        int currentPage = page.orElse(1);
-        int pageSize = size.orElse(3);
+    public String contact(Model model, Optional<Integer> page){
         logger.info("request the contact page");
+        // to get the current user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
-        List<UserDTO> connections = userService.getConnection(user);
-        final Page<UserDTO> pageConnections = userService.getPaginatedConnection(PageRequest.of(currentPage - 1, pageSize, Sort.by(Sort.Order.asc("name"))), connections);
-        model.addAttribute("connections", pageConnections);
+        User currentUser = userService.loadUserByUsername(auth.getName());
 
+        // the following code handles the connections pagination
+        int currentPage = page.orElse(1);
+        final Page<UserDTO> pageConnections = userService.getConnections(
+                currentUser.getEmail(),
+                PageRequest.of(currentPage - 1, 3, Sort.by(
+                        Sort.Direction.ASC,"user1")));
+        model.addAttribute("connections", pageConnections);
         int totalPages = pageConnections.getTotalPages();
         if (totalPages > 0) {
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
@@ -110,7 +110,6 @@ public class PayMyBuddyPageViewController {
                     .collect(Collectors.toList());
             model.addAttribute("pageNumbers", pageNumbers);
         }
-
         return "contact";
     }
 

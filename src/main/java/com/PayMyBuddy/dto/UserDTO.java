@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Setter
@@ -39,6 +40,50 @@ public class UserDTO {
         this.password = password;
         this.matchingPassword = matchingPassword;
         this.email = email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) {
+            return true;
+        }
+
+        if (o == null) {
+            return false;
+        }
+
+        if (o.getClass() != this.getClass()) {
+            return false;
+        }
+
+        final UserDTO other = (UserDTO) o;
+
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+
+        if (!Objects.equals(this.password, other.password)) {
+            return false;
+        }
+
+        if (!Objects.equals(this.matchingPassword, other.matchingPassword)) {
+            return false;
+        }
+
+        if (!Objects.equals(this.email, other.email)) {
+            return false;
+        }
+
+        if (this.balance != other.balance) {
+            return false;
+        }
+
+        if (!Objects.equals(this.connections, other.connections)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
