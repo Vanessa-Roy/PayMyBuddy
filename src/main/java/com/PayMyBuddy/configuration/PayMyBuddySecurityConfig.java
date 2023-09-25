@@ -1,5 +1,7 @@
 package com.PayMyBuddy.configuration;
 
+import com.PayMyBuddy.repository.UserRepository;
+import com.PayMyBuddy.security.CustomOAuth2UserService;
 import com.PayMyBuddy.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +25,12 @@ public class PayMyBuddySecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private CustomOAuth2UserService oAuth2UserService;
+
+    @Autowired
+    UserRepository userRepository;
+
     @Bean
     public static PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
@@ -34,19 +42,29 @@ public class PayMyBuddySecurityConfig {
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/register").permitAll()
                                 .requestMatchers("*.png").permitAll()
-                                .requestMatchers("**").authenticated()
-                ).rememberMe(Customizer.withDefaults()
-                ).formLogin(
+                                .requestMatchers("/oauth2/**").permitAll()
+                                .requestMatchers("**").authenticated())
+                .rememberMe(Customizer.withDefaults())
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(oAuth2UserService))
+                        .successHandler((request, response, authentication) -> {
+                            if (userRepository.findByEmail(authentication.getName()) == null) {
+                                response.sendRedirect("/register");
+                            } else { response.sendRedirect("/home"); }
+                        })
+                )
+                .formLogin(
                         form -> form
                                 .loginPage("/login")
                                 .loginProcessingUrl("/login")
                                 .defaultSuccessUrl("/home")
-                                .permitAll()
-                ).logout(
+                                .permitAll())
+                .logout(
                         logout -> logout
                                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                                .permitAll()
-                ).userDetailsService(customUserDetailsService)
+                                .permitAll())
+                .userDetailsService(customUserDetailsService)
         ;
         return http.build();
     }

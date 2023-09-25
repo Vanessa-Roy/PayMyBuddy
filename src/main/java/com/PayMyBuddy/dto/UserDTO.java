@@ -42,6 +42,11 @@ public class UserDTO {
         this.email = email;
     }
 
+    public UserDTO(String displayName, String email) {
+        this.name = displayName;
+        this.email = email;
+    }
+
     @Override
     public boolean equals(Object o) {
 

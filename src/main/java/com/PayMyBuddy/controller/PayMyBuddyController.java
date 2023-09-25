@@ -40,7 +40,7 @@ public class PayMyBuddyController {
         }
         try {
             userService.saveUser(userDto);
-            return "redirect:/register?success";
+            return "redirect:/home?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "register";

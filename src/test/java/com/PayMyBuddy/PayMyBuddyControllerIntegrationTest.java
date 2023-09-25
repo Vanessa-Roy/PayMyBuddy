@@ -107,7 +107,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/register?success"));
+                .andExpect(view().name("redirect:/home?success"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
@@ -124,7 +124,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/register?success"));
+                .andExpect(view().name("redirect:/home?success"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
@@ -141,7 +141,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/register?success"));
+                .andExpect(view().name("redirect:/home?success"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }

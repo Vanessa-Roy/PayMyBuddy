@@ -6,6 +6,7 @@ import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
+import com.PayMyBuddy.security.CustomOAuth2User;
 import com.PayMyBuddy.service.TransactionService;
 import com.PayMyBuddy.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -40,14 +41,26 @@ public class PayMyBuddyPageViewController {
     private TransactionRepository transactionRepository;
 
     @GetMapping("/home")
-    public String home(){
+    public String home(Model model){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userService.loadUserByUsername(auth.getName());
+        String name = currentUser.getName();
+        model.addAttribute("name", name);
         return "home";
     }
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model){
         logger.info("request the form page");
-        model.addAttribute("user", new UserDTO());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth.getPrincipal() instanceof CustomOAuth2User) {
+            CustomOAuth2User oAuth2User = (CustomOAuth2User) auth.getPrincipal();
+            UserDTO userDTO = new UserDTO(oAuth2User.getDisplayName(),oAuth2User.getName());
+            model.addAttribute("user", userDTO);
+        } else {
+            UserDTO userDTO = new UserDTO();
+            model.addAttribute("user", userDTO);
+        }
         return "register";
     }
 

@@ -105,12 +105,13 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToHomeForAuthenticatedUserTest() throws Exception {
         this.mockMvc
                 .perform(get("/home"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("home"));
+                .andExpect(view().name("home"))
+                .andExpect(model().attributeExists("name"));
     }
 
     @Test
