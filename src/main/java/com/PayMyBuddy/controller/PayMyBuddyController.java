@@ -2,7 +2,6 @@ package com.PayMyBuddy.controller;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
-import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.service.TransactionService;
@@ -48,7 +47,7 @@ public class PayMyBuddyController {
     }
 
     @PostMapping("/transfer")
-    public String sendMoney(@Valid @ModelAttribute("transaction") TransactionDTO transactionDTO, BindingResult bindingResult, @ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
+    public String sendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User existingUser = userService.loadUserByUsername(auth.getName());
         UserDTO user = userService.mapToUserDto(existingUser);

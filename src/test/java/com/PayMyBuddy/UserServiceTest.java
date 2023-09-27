@@ -152,12 +152,30 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionWithNotExistingUserShouldNotUpdateAttributeConnectionsUserTest() {
+    public void addConnectionWithNotExistingUser1ShouldNotUpdateAttributeConnectionsUserTest() {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         List<User> expectedConnections = new ArrayList<>();
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(null);
+
+        Exception exception = assertThrows(UserDoesntExistException.class, () ->
+                userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
+        assertEquals("There is no account registered with this email", exception.getMessage());
+        assertEquals(expectedConnections,user.getConnections());
+        verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
+        verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void addConnectionWithNotExistingUser2ShouldNotUpdateAttributeConnectionsUserTest() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        List<User> expectedConnections = new ArrayList<>();
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(null);
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
 
         Exception exception = assertThrows(UserDoesntExistException.class, () ->
                 userServiceTest.addConnection(user.getEmail(),user2.getEmail()));
@@ -267,7 +285,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getConnectionUser1ShouldShowAllConnectionsUserTest() {
+    public void getConnectionUser1ShouldShowPagesWithAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         userDTO.getConnections().add(user2);
@@ -285,7 +303,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getConnectionUser2ShouldShowAllConnectionsUserTest() {
+    public void getConnectionUser2ShouldShowPagesWithAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         user2Dto.getConnections().add(user);
@@ -311,6 +329,24 @@ public class UserServiceTest {
         assertEquals(0,result.getTotalElements());
         verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3));
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void getConnectionUser1ShouldShowListWithAllConnectionsUserTest() {
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
+        userDTO.getConnections().add(user2);
+        when(userRepository.findAllConnectionsByEmail(userDTO.getEmail())).thenReturn(List.of("email2@test.com"));
+        when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+        List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
+
+        List<UserDTO> result = userServiceTest.getConnections(userDTO);
+
+        assertEquals(1,result.size());
+        assertEquals(expectedResult, result);
+        verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail());
+        verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
     }
 
 }

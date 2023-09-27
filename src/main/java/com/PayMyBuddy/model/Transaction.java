@@ -28,6 +28,9 @@ public class Transaction {
     @Column(nullable = false)
     private float amount;
 
+    @Column(nullable = false)
+    private float fee;
+
     @ManyToOne(
             cascade = CascadeType.ALL
     )

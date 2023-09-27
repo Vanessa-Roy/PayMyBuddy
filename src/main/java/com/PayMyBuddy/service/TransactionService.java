@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,9 @@ public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private FareCalculatorService fareCalculatorService;
 
     public Page<TransactionDTO> getTransactions(String userEmail, Pageable pageable) {
 
@@ -84,16 +89,21 @@ public class TransactionService {
         }
 
         if(senderUser.getConnections().contains(receiverUser) || receiverUser.getConnections().contains(senderUser)) {
-            Float currentSenderUserBalance = senderUser.getBalance();
-            Float currentReceiverUserBalance = receiverUser.getBalance();
+            float currentSenderUserBalance = senderUser.getBalance();
+            float currentReceiverUserBalance = receiverUser.getBalance();
+            float currentTransactionFee = fareCalculatorService.calculateFare(amount);
 
-            float newSenderUserBalance = currentSenderUserBalance - amount;
+            float newSenderUserBalance = currentSenderUserBalance - amount - currentTransactionFee;
 
             if (newSenderUserBalance < 0) {
                 throw new NotEnoughtFundsException();
             }
 
+            newSenderUserBalance = new BigDecimal(newSenderUserBalance).setScale(2, RoundingMode.HALF_EVEN).floatValue();
+
             float newReceiverUserBalance = currentReceiverUserBalance + amount;
+
+            newReceiverUserBalance = new BigDecimal(newReceiverUserBalance).setScale(2, RoundingMode.HALF_EVEN).floatValue();
 
             senderUser.setBalance(newSenderUserBalance);
             receiverUser.setBalance(newReceiverUserBalance);
@@ -107,6 +117,7 @@ public class TransactionService {
             transaction.setSenderUser(senderUser);
             transaction.setDate(LocalDate.now());
             transaction.setDescription(description);
+            transaction.setFee(currentTransactionFee);
 
             transactionRepository.save(transaction);
 
@@ -122,7 +133,7 @@ public class TransactionService {
             throw new InvalidAmountException();
         }
         User existingUser = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        Float currentUserBalance = existingUser.getBalance();
+        float currentUserBalance = existingUser.getBalance();
         float newUserBalance = currentUserBalance - amount;
         if (newUserBalance < 0) {
             throw new NotEnoughtFundsException();
@@ -137,10 +148,9 @@ public class TransactionService {
             throw new InvalidAmountException();
         }
         User existingUser = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        Float currentUserBalance = existingUser.getBalance();
+        float currentUserBalance = existingUser.getBalance();
         float newUserBalance = currentUserBalance + amount;
         existingUser.setBalance(newUserBalance);
-        System.out.println(existingUser.getBalance());
         userRepository.save(existingUser);
         logger.info("the balance's user {} has been updated", existingUser.getEmail());
     }

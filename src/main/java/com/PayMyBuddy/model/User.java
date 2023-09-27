@@ -17,8 +17,8 @@ public class User {
     @Id
     private String email;
 
-    @Column(nullable = false, columnDefinition = "float default 0")
-    private Float balance;
+    @Column(nullable = false)
+    private float balance;
 
     @Column(nullable = false)
     private String name;

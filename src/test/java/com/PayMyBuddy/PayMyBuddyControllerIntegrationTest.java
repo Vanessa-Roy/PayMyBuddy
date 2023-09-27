@@ -598,7 +598,7 @@ public class PayMyBuddyControllerIntegrationTest {
     void postSendMoneyShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
-        existingUser.setBalance(10f);
+        existingUser.setBalance(10.05f);
         existingUser.getConnections().add(existingUser2);
         userRepository.save(existingUser);
         this.mockMvc
@@ -661,16 +661,14 @@ public class PayMyBuddyControllerIntegrationTest {
     void sendMoneyShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
-        existingUser.setBalance(10f);
+        existingUser.setBalance(10.05f);
         existingUser.getConnections().add(existingUser2);
         userRepository.save(existingUser);
         userRepository.save(existingUser2);
-        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", -10f, existingUser2);
         this.mockMvc
                 .perform(post("/transfer")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("transaction", String.valueOf(transactionDTO))
-                        .param("amount", "10f")
+                        .param("amount", "10.00")
                         .param("connections","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -678,7 +676,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
         assertEquals(1,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
         assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
-        assertEquals(10f,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
+        assertEquals(10,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
     }
 
     @Test

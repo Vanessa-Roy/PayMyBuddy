@@ -31,15 +31,14 @@ public class UserDTO {
     private String email;
 
     @Min(value = 0, message = "balance must contain digits")
-    private Float balance;
+    private float balance;
 
     private List<User> connections = new ArrayList<>();
 
-    public UserDTO(String name, String password, String matchingPassword, String email) {
-        this.name = name;
+    public UserDTO(String displayName, String password, String matchingPassword, String email) {
+        this(displayName, email);
         this.password = password;
         this.matchingPassword = matchingPassword;
-        this.email = email;
     }
 
     public UserDTO(String displayName, String email) {

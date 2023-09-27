@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -41,13 +40,6 @@ public class UserService {
 
     public User loadUserByUsername(String email) {
         return userRepository.findByEmail(email);
-    }
-
-    public List<UserDTO> findAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(this::mapToUserDto)
-                .collect(Collectors.toList());
     }
 
     public void saveUser(UserDTO userDto) throws Exception {

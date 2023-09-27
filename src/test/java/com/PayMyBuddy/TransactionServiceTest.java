@@ -10,6 +10,7 @@ import com.PayMyBuddy.model.Transaction;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
+import com.PayMyBuddy.service.FareCalculatorService;
 import com.PayMyBuddy.service.TransactionService;
 import com.PayMyBuddy.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,8 @@ public class TransactionServiceTest {
     @InjectMocks
     private static TransactionService transactionServiceTest;
 
+    @Mock
+    private static FareCalculatorService fareCalculatorService;
     @Mock
     private static UserService userService;
     @Mock
@@ -120,7 +123,7 @@ public class TransactionServiceTest {
     public void getTransactionsSenderUserShouldShowAllTransactionsUserTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
+        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of(transaction)));
         List<TransactionDTO> expectedResult = new ArrayList<>(List.of(
@@ -143,7 +146,7 @@ public class TransactionServiceTest {
     public void getTransactionsReceiverUserShouldShowAllTransactionsUserTest() {
         user = new User("email@test.com", 100f, "userTest", "passwordTest0!", new ArrayList<>());
         User user2 = new User("email2@test.com", 100f, "user2Test", "passwordTest0!", new ArrayList<>(List.of(user)));
-        Transaction transaction = new Transaction(1, LocalDate.now(), "transactionTest", 10f, user2, user);
+        Transaction transaction = new Transaction(1, LocalDate.now(), "transactionTest", 10f, 0.05f, user2, user);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of(transaction)));
         List<TransactionDTO> expectedResult = new ArrayList<>(List.of(
@@ -153,6 +156,22 @@ public class TransactionServiceTest {
                         transaction.getAmount(),
                         transaction.getSenderUser())
         ));
+
+        Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(expectedResult, result.getContent());
+        verify(transactionRepository, Mockito.times(1)).findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3));
+    }
+
+    @Test
+    @WithMockUser(username = "email@test.com")
+    public void getTransactionsShouldNotShowTransactionsOfOtherUsersTest() {
+        user = new User("email@test.com", 100f, "userTest", "passwordTest0!", new ArrayList<>());
+        Transaction transaction = new Transaction(1, LocalDate.now(), "transactionTest", 10f, 0.05f, new User(), new User());
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of(transaction)));
+        List<TransactionDTO> expectedResult = new ArrayList<>(List.of());
 
         Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
 
@@ -181,13 +200,14 @@ public class TransactionServiceTest {
     public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
+        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+        when(fareCalculatorService.calculateFare(10f)).thenReturn(0.05f);
 
         transactionServiceTest.sendMoney(10f, "transactionTest", user2.getEmail(), user.getEmail());
 
-        assertEquals(90f, user.getBalance());
+        assertEquals(89.95f, user.getBalance());
         assertEquals(110f, user2.getBalance());
         verify(userRepository, Mockito.times(1)).findByEmail(user.getEmail());
         verify(userRepository, Mockito.times(1)).findByEmail(user2.getEmail());
@@ -201,7 +221,7 @@ public class TransactionServiceTest {
     public void sendMoneyUser1toUser2WithNotExistingConnectionShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
+        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
 
@@ -218,7 +238,7 @@ public class TransactionServiceTest {
     @WithMockUser(username = "email@test.com")
     public void sendMoneyToOneselfShouldNotUpdateAttributeBalanceUserAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user);
+        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
 
         Exception exception = assertThrows(NotExistingConnection.class, () ->
@@ -246,11 +266,12 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithInsufficientBalanceShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
+    public void sendMoneyWithInsufficientBalanceShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
+        when(fareCalculatorService.calculateFare(200f)).thenReturn(1.0f);
 
         Exception exception = assertThrows(NotEnoughtFundsException.class, () ->
                 transactionServiceTest.sendMoney(200f, "transactionTest", user.getEmail(), user2.getEmail()));
