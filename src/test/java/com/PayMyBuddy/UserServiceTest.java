@@ -53,7 +53,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void saveUserDoesNotExistShouldPassTest() throws Exception {
+    public void saveUserDoesNotExistShouldCreateNewUserTest() throws Exception {
         when(passwordValidator.isValid(userDTO)).thenReturn(true);
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(null);
         when(passwordEncoder.encode(userDTO.getPassword())).thenReturn(userDTO.getPassword());
@@ -67,7 +67,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void saveUserAlreadyExistsShouldFailTest() {
+    public void saveUserAlreadyExistsShouldNotCreateNewUserTest() {
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
 
         Exception exception = assertThrows(UserAlreadyExistsException.class, () -> userServiceTest.saveUser(userDTO));
@@ -78,7 +78,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void editPasswordShouldPassTest() throws Exception {
+    public void editPasswordShouldUpdateAttributePasswordUserTest() throws Exception {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("passwordTest0!", "newPasswordTest0!", "newPasswordTest0!");
         when(userRepository.findByEmail("email@test.com")).thenReturn(user);
@@ -96,7 +96,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void editPasswordWithoutSameOldNewPasswordShouldFailTest() {
+    public void editPasswordWithoutSameOldNewPasswordShouldNotUpdateAttributePasswordUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("wrongPasswordTest0!", "newPasswordTest0!", "newPasswordTest0!");
         when(userRepository.findByEmail("email@test.com")).thenReturn(user);
@@ -109,7 +109,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void editPasswordWithoutSameNewMatchingPasswordShouldFailTest() {
+    public void editPasswordWithoutSameNewMatchingPasswordShouldNotUpdateAttributePasswordUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("passwordTest0!", "newPasswordTest0!", "wrongNewPasswordTest0!");
         when(userRepository.findByEmail("email@test.com")).thenReturn(user);
@@ -121,7 +121,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void editNameShouldPassTest() {
+    public void editNameShouldUpdateAttributeNameUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals("existingUser",user.getName());
@@ -135,7 +135,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionShouldPass() throws UserDoesntExistException, AlreadyExistingConnection {
+    public void addConnectionShouldUpdateAttributeConnectionsUserTest() throws UserDoesntExistException, AlreadyExistingConnection {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         List<User> expectedConnections = new ArrayList<>(List.of(user2));
@@ -152,7 +152,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionWithNotExistingUserShouldFail() {
+    public void addConnectionWithNotExistingUserShouldNotUpdateAttributeConnectionsUserTest() {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         List<User> expectedConnections = new ArrayList<>();
@@ -170,7 +170,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionWithExistingConnectionUser2ShouldFail() {
+    public void addConnectionWithExistingConnectionUser2ShouldNotUpdateAttributeConnectionsUserTest() {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -186,7 +186,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionWithExistingConnectionUser1ShouldFail() {
+    public void addConnectionWithExistingConnectionUser1ShouldNotUpdateAttributeConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user2)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -202,7 +202,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void addConnectionWithSameUserShouldFail() {
+    public void addConnectionWithSameUserShouldNotUpdateAttributeConnectionsUserTest() {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -217,7 +217,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void deleteConnectionUser2ShouldPass() throws NotExistingConnection {
+    public void deleteConnectionUser2ShouldUpdateAttributeConnectionsUserTest() throws NotExistingConnection {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>(List.of(user)));
         List<User> expectedConnections = new ArrayList<>();
@@ -234,7 +234,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void deleteConnectionUser1ShouldPass() throws NotExistingConnection {
+    public void deleteConnectionUser1ShouldUpdateAttributeConnectionsUserTest() throws NotExistingConnection {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>(List.of(user2)));
         List<User> expectedConnections = new ArrayList<>();
@@ -251,7 +251,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void deleteConnectionWithNotExistingConnectionShouldFail() {
+    public void deleteConnectionWithNotExistingConnectionShouldNotUpdateAttributeConnectionsUserTest() {
         user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -267,7 +267,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getConnectionUser1ShouldPass() {
+    public void getConnectionUser1ShouldShowAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         userDTO.getConnections().add(user2);
@@ -285,7 +285,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getConnectionUser2ShouldPass() {
+    public void getConnectionUser2ShouldShowAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
         user2Dto.getConnections().add(user);
@@ -303,7 +303,7 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getConnectionWithoutConnectionsShouldPass() {
+    public void getConnectionWithoutConnectionsShouldShowAnEmptyListTest() {
         when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(Collections.emptyList()));
 
         Page<UserDTO> result = userServiceTest.getConnections(userDTO.getEmail(), PageRequest.of(0, 3));

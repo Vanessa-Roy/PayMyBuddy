@@ -305,7 +305,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void getConnectionWithPagesShouldPass() throws Exception {
+    void shouldAllowAccessToGetConnectionWithPagesTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
         userRepository.save(existingUser2);
@@ -325,7 +325,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     }
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void getConnectionWithPagesWhoDoesNotExistShouldPass() throws Exception {
+    void shouldAllowAccessToGetConnectionWithPagesWhoDoesNotExistTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
         userRepository.save(existingUser2);
@@ -346,7 +346,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void getConnectionWithNoConnectionShouldPass() throws Exception {
+    void shouldAllowAccessToGetConnectionWithNoConnectionTest() throws Exception {
 
         this.mockMvc
                 .perform(get("/contact"))

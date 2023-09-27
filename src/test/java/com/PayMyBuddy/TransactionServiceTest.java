@@ -59,7 +59,7 @@ public class TransactionServiceTest {
     }
     @Test
     @WithMockUser(username = "email@test.com")
-    public void withdrawShouldPassTest() throws NotEnoughtFundsException, InvalidAmountException {
+    public void withdrawShouldUpdateAttributeBalanceUserTest() throws NotEnoughtFundsException, InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
@@ -73,7 +73,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void withdrawWithAmountGreaterThanBalanceShouldFailTest() {
+    public void withdrawWithAmountGreaterThanBalanceShouldNotUpdateAttributeBalanceUserTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
@@ -86,7 +86,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void withdrawWithNegativeAmountShouldFailTest() {
+    public void withdrawWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() {
         Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.withdraw(-50f));
         assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
@@ -95,7 +95,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void depositShouldPassTest() throws InvalidAmountException {
+    public void depositShouldUpdateAttributeBalanceUserTest() throws InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
@@ -108,7 +108,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void depositWithNegativeAmountShouldFailTest() {
+    public void depositWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() {
         Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.deposit(-50f));
         assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
@@ -117,7 +117,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionsSenderUserShouldPass() {
+    public void getTransactionsSenderUserShouldShowAllTransactionsUserTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
@@ -140,7 +140,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionsReceiverUserShouldPass() {
+    public void getTransactionsReceiverUserShouldShowAllTransactionsUserTest() {
         user = new User("email@test.com", 100f, "userTest", "passwordTest0!", new ArrayList<>());
         User user2 = new User("email2@test.com", 100f, "user2Test", "passwordTest0!", new ArrayList<>(List.of(user)));
         Transaction transaction = new Transaction(1, LocalDate.now(), "transactionTest", 10f, user2, user);
@@ -163,7 +163,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void getTransactionsWithoutTransactionShouldPass() {
+    public void getTransactionsWithoutTransactionShouldShowAnEmptyListTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(transactionRepository.findBySenderUserOrReceiverUser(user, user, PageRequest.of(0, 3))).thenReturn(new PageImpl<>(Collections.emptyList()));
@@ -178,7 +178,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyUser1toUser2ShouldPass() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
@@ -198,7 +198,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyUser1toUser2WithNotExistingConnectionShouldFail() {
+    public void sendMoneyUser1toUser2WithNotExistingConnectionShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user2);
@@ -216,7 +216,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyToOneselfShouldFail() {
+    public void sendMoneyToOneselfShouldNotUpdateAttributeBalanceUserAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,user,user);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -231,7 +231,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithInvalidAmountShouldFail() {
+    public void sendMoneyWithInvalidAmountShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
 
@@ -246,7 +246,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithInsufficientBalanceShouldFail() {
+    public void sendMoneyWithInsufficientBalanceShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -264,7 +264,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownReceiverUserShouldFail() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownReceiverUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail("email2@test.com")).thenReturn(null);
@@ -281,7 +281,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownSenderUserShouldFail() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownSenderUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail("email@test.com")).thenReturn(null);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);

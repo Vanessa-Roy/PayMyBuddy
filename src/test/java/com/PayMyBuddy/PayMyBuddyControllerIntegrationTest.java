@@ -97,7 +97,7 @@ public class PayMyBuddyControllerIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void saveUserShouldPassTest() throws Exception {
+    void saveUserShouldCreateNewUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/register")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -113,7 +113,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNameWithSpacesShouldPassTest() throws Exception {
+    void saveUserWithNameWithSpacesShouldCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -130,7 +130,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithCompoundNameShouldPassTest() throws Exception {
+    void saveUserWithCompoundNameShouldCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -147,7 +147,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveExistingUserShouldFailTest() throws Exception {
+    void saveExistingUserShouldNotCreateNewUserTest() throws Exception {
         UserDTO existingUser = new UserDTO("nameTest","passwordTest!0","passwordTest!0","userTest@email.com");
         userService.saveUser(existingUser);
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
@@ -165,7 +165,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNotSamePasswordsShouldFailTest() throws Exception {
+    void saveUserWithNotSamePasswordsShouldNotCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -182,7 +182,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNameWithOnlySpacesShouldFailTest() throws Exception {
+    void saveUserWithNameWithOnlySpacesShouldNotCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -198,7 +198,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNameWithOnlyHyphensShouldFailTest() throws Exception {
+    void saveUserWithNameWithOnlyHyphensShouldNotCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -215,7 +215,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithNullsParameterShouldFailTest() throws Exception {
+    void saveUserWithNullsParameterShouldNotCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -232,7 +232,7 @@ public class PayMyBuddyControllerIntegrationTest {
     }
 
     @Test
-    void saveUserWithoutParametersShouldFailTest() throws Exception {
+    void saveUserWithoutParametersShouldNotCreateNewUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/register")
@@ -245,7 +245,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameShouldPassTest() throws Exception {
+    void editNameShouldUpdateAttributeNameUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -259,7 +259,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithNameWithSpacesShouldPassTest() throws Exception {
+    void editNameWithNameWithSpacesShouldUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -274,7 +274,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithCompoundNameShouldPassTest() throws Exception {
+    void editNameWithCompoundNameShouldUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -289,7 +289,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithoutParametersShouldFailTest() throws Exception {
+    void editNameWithoutParametersShouldNotUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -302,7 +302,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithNameWithOnlySpacesShouldFailTest() throws Exception {
+    void editNameWithNameWithOnlySpacesShouldNotUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -316,7 +316,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithNameWithOnlyHyphensShouldFailTest() throws Exception {
+    void editNameWithNameWithOnlyHyphensShouldNotUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -331,7 +331,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editNameWithNullsParameterShouldFailTest() throws Exception {
+    void editNameWithNullsParameterShouldNotUpdateAttributeNameUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editName")
@@ -346,7 +346,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordShouldPassTest() throws Exception {
+    void editPasswordShouldUpdateAttributePasswordUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/editPassword")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -362,7 +362,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordWithNullsParameterShouldFailTest() throws Exception {
+    void editPasswordWithNullsParameterShouldNotUpdateAttributePasswordUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editPassword")
@@ -379,7 +379,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordWithoutSameOldNewPasswordShouldFailTest() throws Exception {
+    void editPasswordWithoutSameOldNewPasswordShouldNotUpdateAttributePasswordUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editPassword")
@@ -396,7 +396,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordWithInvalidValueShouldFailTest() throws Exception {
+    void editPasswordWithInvalidValueShouldNotUpdateAttributePasswordUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editPassword")
@@ -413,7 +413,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void editPasswordWithoutSameNewMatchingPasswordShouldFailTest() throws Exception {
+    void editPasswordWithoutSameNewMatchingPasswordShouldNotUpdateAttributePasswordUserTest() throws Exception {
 
         this.mockMvc
                 .perform(post("/editPassword")
@@ -430,7 +430,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void deleteConnectionShouldPassTest() throws Exception {
+    void deleteConnectionShouldUpdateAttributeConnectionsUserTest() throws Exception {
         User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
         userRepository.save(existingUser2);
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
@@ -446,12 +446,12 @@ public class PayMyBuddyControllerIntegrationTest {
                 .andExpect(redirectedUrl("/contact?success"))
                 .andExpect(view().name("redirect:/contact?success"));
 
-        assertTrue(userRepository.findByEmail("existingUserTest@email.test").getConnections().size()==0);
+        assertEquals(0, userRepository.findByEmail("existingUserTest@email.test").getConnections().size());
     }
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void deleteConnectionWithoutConnectionsShouldFailTest() throws Exception {
+    void deleteConnectionWithoutConnectionsShouldNotUpdateAttributeConnectionsUserTest() throws Exception {
         User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
         userRepository.save(existingUser2);
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
@@ -468,7 +468,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void addConnectionShouldPassTest() throws Exception {
+    void addConnectionShouldUpdateAttributeConnectionsUserTest() throws Exception {
         User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>());
         userRepository.save(existingUser2);
         this.mockMvc
@@ -483,7 +483,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void addConnectionWithInvalidUserShouldFailTest() throws Exception {
+    void addConnectionWithInvalidUserShouldNotUpdateAttributeConnectionsUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/addConnection")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -496,7 +496,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void addConnectionWithNotExistingUserShouldFailTest() throws Exception {
+    void addConnectionWithNotExistingUserShouldNotUpdateAttributeConnectionsUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/addConnection")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -509,7 +509,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void depositShouldPassTest() throws Exception {
+    void depositShouldUpdateAttributeBalanceUserTest() throws Exception {
         this.mockMvc
                 .perform(post("/deposit")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -523,7 +523,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void depositWithNegativeAmountShouldFailTest() throws Exception {
+    void depositWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(1f);
         userRepository.save(existingUser);
@@ -541,7 +541,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void withdrawShouldPassTest() throws Exception {
+    void withdrawShouldUpdateAttributeBalanceUserTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(1f);
         userRepository.save(existingUser);
@@ -559,7 +559,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void withdrawWithNegativeAmountShouldFailTest() throws Exception {
+    void withdrawWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(1f);
         userRepository.save(existingUser);
@@ -577,7 +577,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void withdrawWithAmountGreaterThanBalanceShouldFailTest() throws Exception {
+    void withdrawWithAmountGreaterThanBalanceShouldNotUpdateAttributeBalanceUserTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(1f);
         userRepository.save(existingUser);
@@ -595,7 +595,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void postSendMoneyShouldPassTest() throws Exception {
+    void postSendMoneyShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.setBalance(10f);
@@ -618,7 +618,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void postSendMoneyWithInvalidAmountShouldFailTest() throws Exception {
+    void postSendMoneyWithInvalidAmountShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.getConnections().add(existingUser2);
@@ -640,7 +640,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void postSendMoneyWithInvalidUserShouldFailTest() throws Exception {
+    void postSendMoneyWithInvalidUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         this.mockMvc
                 .perform(post("/sendMoney")
@@ -658,7 +658,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void sendMoneyShouldPassTest() throws Exception {
+    void sendMoneyShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.setBalance(10f);
@@ -683,7 +683,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void sendMoneyWithInvalidAmountShouldFailTest() throws Exception {
+    void sendMoneyWithInvalidAmountShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.setBalance(10f);
@@ -704,7 +704,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
-    void sendMoneyWithInvalidUserShouldFailTest() throws Exception {
+    void sendMoneyWithInvalidUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.setBalance(10f);
