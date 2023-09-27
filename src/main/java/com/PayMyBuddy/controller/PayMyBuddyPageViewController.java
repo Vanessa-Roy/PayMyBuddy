@@ -53,8 +53,7 @@ public class PayMyBuddyPageViewController {
     public String showRegistrationForm(Model model){
         logger.info("request the form page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth.getPrincipal() instanceof CustomOAuth2User) {
-            CustomOAuth2User oAuth2User = (CustomOAuth2User) auth.getPrincipal();
+        if (auth.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
             UserDTO userDTO = new UserDTO(oAuth2User.getDisplayName(),oAuth2User.getName());
             model.addAttribute("user", userDTO);
         } else {

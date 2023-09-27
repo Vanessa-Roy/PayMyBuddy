@@ -1,14 +1,26 @@
 package com.PayMyBuddy.security;
 
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
 
+@Setter
 public class CustomOAuth2User implements OAuth2User {
 
-    private final OAuth2User oauth2User;
+    private OAuth2User oauth2User;
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    private String email;
 
     public CustomOAuth2User(OAuth2User oauth2User) {
         this.oauth2User = oauth2User;
@@ -26,7 +38,11 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public String getName() {
-        return oauth2User.getAttribute("email");
+        if (oauth2User.getAttribute("email") == null) {
+            return getEmail();
+        } else {
+            return oauth2User.getAttribute("email");
+        }
     }
 
     public String getDisplayName() {
