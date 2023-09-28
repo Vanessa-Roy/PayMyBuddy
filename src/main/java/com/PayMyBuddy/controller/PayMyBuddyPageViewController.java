@@ -82,8 +82,6 @@ public class PayMyBuddyPageViewController {
         UserDTO currentUserDTO = userService.mapToUserDto(currentUser);
         List<UserDTO> connections = userService.getConnections(currentUserDTO);
         model.addAttribute("connections", connections);// to set the dropdown of connections into the view
-        TransactionDTO transactionDTO = new TransactionDTO();
-        model.addAttribute("transaction", transactionDTO);
 
         // the following code handles the transactions pagination
         int currentPage = page.orElse(1);

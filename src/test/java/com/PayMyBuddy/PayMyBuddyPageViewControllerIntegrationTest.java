@@ -348,7 +348,6 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("transfer"))
                 .andExpect(model().attributeExists("connections"))
-                .andExpect(model().attributeExists("transaction"))
                 .andExpect(model().attributeExists("transactions"))
                 .andExpect(model().attributeExists("pageNumbers"));
     }
@@ -395,7 +394,6 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("transfer"))
                 .andExpect(model().attributeExists("connections"))
-                .andExpect(model().attributeExists("transaction"))
                 .andExpect(model().attributeExists("transactions"))
                 .andExpect(model().attributeExists("pageNumbers"));
     }
@@ -421,7 +419,6 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("transfer"))
                 .andExpect(model().attributeExists("connections"))
-                .andExpect(model().attributeExists("transaction"))
                 .andExpect(model().attributeExists("transactions"))
                 .andExpect(model().attributeExists("pageNumbers"));
     }

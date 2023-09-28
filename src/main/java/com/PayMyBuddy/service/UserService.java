@@ -70,10 +70,9 @@ public class UserService {
         return userDto;
     }
 
-    public void editName(UserDTO userDto) {
-        User currentUser = loadUserByUsername(userDto.getEmail());
+    public void editName(String nameUser, User currentUser) {
 
-        currentUser.setName(userDto.getName());
+        currentUser.setName(nameUser);
 
         userRepository.save(currentUser);
         logger.info("the name's user {} has been updated", currentUser.getEmail());

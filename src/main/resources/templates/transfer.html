@@ -76,11 +76,10 @@
                         class="row g-3 align-items-center"
                         method="post"
                         role="form"
-                        th:object="${transaction}"
                         th:action="@{/transfer}"
                 >
                     <div class="col-5 offset-md-1">
-                        <select class="form-select border border-2 border-dark rounded-0" th:field="*{connections}" name="connections" required>
+                        <select class="form-select border border-2 border-dark rounded-0" id="connections" name="connections" required>
                             <option value="">Select A Connection</option>
                             <option th:each="c:${connections}" th:value="${c.email}"
                                     th:text="${c.name} + ' email: ' + ${c.email}">

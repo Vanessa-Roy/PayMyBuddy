@@ -2,6 +2,7 @@ package com.PayMyBuddy.controller;
 
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
+import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.security.AuthenticatedUserProvider;
@@ -11,6 +12,9 @@ import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +22,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 public class PayMyBuddyController {
@@ -59,8 +66,22 @@ public class PayMyBuddyController {
             return "redirect:/transfer?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
-            return "error";
+            List<UserDTO> connections = userService.getConnections(user);
+            model.addAttribute("connections", connections);
+            final Page<TransactionDTO> pageTransactions = transactionService.getTransactions(
+                    currentUser.getEmail(),
+                    PageRequest.of(0, 3, Sort
+                            .by(Sort.Direction.DESC,"date")
+                            .and(Sort.by(Sort.Direction.ASC,"amount"))));
+            model.addAttribute("transactions", pageTransactions);
+            int totalPages = pageTransactions.getTotalPages();
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
+                    .boxed()
+                    .collect(Collectors.toList());
+            model.addAttribute("pageNumbers", pageNumbers);
+            return "transfer";
         }
+
     }
 
     @PostMapping("/addConnection")
@@ -93,16 +114,19 @@ public class PayMyBuddyController {
     }
 
     @PostMapping("/editName")
-    public String editName(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
-        logger.info("request the name's update of the user {}", userDto.getName());
+    public String editName(@Valid @ModelAttribute("user") UserDTO nameUser, BindingResult bindingResult, Model model) {
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the name's update of the user {}", currentUser.getName());
         if (bindingResult.hasErrors()) {
             return "editName";
         }
         try {
-            userService.editName(userDto);
+            userService.editName(nameUser.getName(), currentUser);
             return "redirect:/profile?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
+            UserDTO user = userService.mapToUserDto(currentUser);
+            model.addAttribute("user", user);
             return "editName";
         }
     }

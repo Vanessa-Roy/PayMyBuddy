@@ -318,7 +318,7 @@ public class PayMyBuddyControllerIntegrationTest {
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void editNameWithNameWithOnlyHyphensShouldNotUpdateAttributeNameUserTest() throws Exception {
-
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         this.mockMvc
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -696,7 +696,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("connections","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(view().name("error"));
+                .andExpect(view().name("transfer"));
     }
 
     @Test
@@ -712,7 +712,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("connections","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(view().name("error"));
+                .andExpect(view().name("transfer"));
     }
 
 }

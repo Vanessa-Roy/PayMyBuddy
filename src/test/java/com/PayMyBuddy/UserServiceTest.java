@@ -119,13 +119,11 @@ public class UserServiceTest {
     @WithMockUser(username = "email@test.com")
     public void editNameShouldUpdateAttributeNameUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
-        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals("existingUser",user.getName());
 
-        userServiceTest.editName(userDTO);
+        userServiceTest.editName("nameTest", user);
 
         assertEquals("nameTest",user.getName());
-        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
     }
 
