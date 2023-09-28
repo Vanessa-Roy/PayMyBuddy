@@ -197,10 +197,9 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersAndCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
         when(fareCalculatorService.calculateFare(10f)).thenReturn(0.05f);
@@ -218,10 +217,9 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyUser1toUser2WithNotExistingConnectionShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
+    public void sendMoneyUser1toUser2WithNotExistingConnectionShouldNotUpdateAttributeBalanceBothUsersTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
-        Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user2);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
 
@@ -236,7 +234,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyToOneselfShouldNotUpdateAttributeBalanceUserAndNotCreateNewTransactionTest() {
+    public void sendMoneyToOneselfShouldNotUpdateAttributeBalanceUserTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         Transaction transaction = new Transaction(1,LocalDate.now(),"transactionTest",10f,0.05f,user,user);
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -251,7 +249,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithInvalidAmountShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() {
+    public void sendMoneyWithInvalidAmountShouldNotUpdateAttributeBalanceBothUsersTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
 
@@ -266,7 +264,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithInsufficientBalanceShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws InvalidAmountException {
+    public void sendMoneyWithInsufficientBalanceShouldNotUpdateAttributeBalanceBothUsersTest() throws InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -285,7 +283,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownReceiverUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownReceiverUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail("email2@test.com")).thenReturn(null);
@@ -302,7 +300,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownSenderUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownSenderUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail("email@test.com")).thenReturn(null);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);

@@ -1,6 +1,5 @@
 package com.PayMyBuddy;
 
-import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
@@ -28,7 +27,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import javax.sql.DataSource;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -688,12 +686,10 @@ public class PayMyBuddyControllerIntegrationTest {
         existingUser.getConnections().add(existingUser2);
         userRepository.save(existingUser);
         userRepository.save(existingUser2);
-        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", 10f, existingUser2);
         this.mockMvc
                 .perform(post("/transfer")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("transaction", String.valueOf(transactionDTO))
-                        .param("amount", "-10f")
+                        .param("amount", "-10.00")
                         .param("connections","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
@@ -704,15 +700,12 @@ public class PayMyBuddyControllerIntegrationTest {
     @WithMockUser(username = "existingUserTest@email.test")
     void sendMoneyWithInvalidUserShouldNotUpdateAttributeBalanceBothUsersAndNotCreateNewTransactionTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
-        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         existingUser.setBalance(10f);
         userRepository.save(existingUser);
-        TransactionDTO transactionDTO = new TransactionDTO(LocalDate.now(), "transactionTest", -10f, existingUser2);
         this.mockMvc
                 .perform(post("/transfer")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("transaction", String.valueOf(transactionDTO))
-                        .param("amount", "10f")
+                        .param("amount", "10.00")
                         .param("connections","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())

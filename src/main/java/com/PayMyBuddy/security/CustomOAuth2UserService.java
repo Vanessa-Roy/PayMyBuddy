@@ -8,7 +8,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -24,26 +26,30 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         CustomOAuth2User customUser = new CustomOAuth2User(user);
         if (customUser.getName() == null) {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("https://api.github.com/user/emails"))
-                        .header("Authorization", "token " + userRequest.getAccessToken().getTokenValue())
-                        .GET()
-                        .build();
-                HttpResponse<String> response = HttpClient.newHttpClient()
-                        .send(request, HttpResponse.BodyHandlers.ofString());
-                String body = response.body();
-                ObjectMapper mapper = new ObjectMapper();
-                List<GithubApiEmailDTO> githubApiEmailDTOList = Arrays.asList(mapper.readValue(body, GithubApiEmailDTO[].class));
-                String email = githubApiEmailDTOList.stream().filter(g -> g.primary().equals("true"))
-                        .map(GithubApiEmailDTO::email)
-                        .findAny()
-                        .orElse(null);
+                String email = getGithubEmail(userRequest);
                 customUser.setEmail(email);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
         return customUser;
+    }
+
+    private static String getGithubEmail(OAuth2UserRequest userRequest) throws URISyntaxException, IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("https://api.github.com/user/emails"))
+                .header("Authorization", "token " + userRequest.getAccessToken().getTokenValue())
+                .GET()
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        String body = response.body();
+        ObjectMapper mapper = new ObjectMapper();
+        List<GithubApiEmailDTO> githubApiEmailDTOList = Arrays.asList(mapper.readValue(body, GithubApiEmailDTO[].class));
+        return githubApiEmailDTOList.stream().filter(g -> g.primary().equals("true"))
+                .map(GithubApiEmailDTO::email)
+                .findAny()
+                .orElse(null);
     }
 
 }
