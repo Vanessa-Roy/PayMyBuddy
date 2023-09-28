@@ -1,6 +1,7 @@
 package com.PayMyBuddy;
 
 import com.PayMyBuddy.dto.UserDTO;
+import com.PayMyBuddy.model.Transaction;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
@@ -26,6 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import javax.sql.DataSource;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -323,6 +325,33 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(model().attributeExists("connections"))
                 .andExpect(model().attributeExists("pageNumbers"));
     }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToGetTransactionWithPagesTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(100f);
+        userRepository.save(existingUser);
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser2);
+        Transaction transaction1 = new Transaction(1, LocalDate.now(),"transactionTest1",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction1);
+        Transaction transaction2 = new Transaction(2, LocalDate.now(),"transactionTest2",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction2);
+        Transaction transaction3 = new Transaction(3, LocalDate.now(),"transactionTest3",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction3);
+        Transaction transaction4 = new Transaction(4, LocalDate.now(),"transactionTest4",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction4);
+
+        this.mockMvc
+                .perform(get("/transfer"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("transfer"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("transaction"))
+                .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToGetConnectionWithPagesWhoDoesNotExistTest() throws Exception {
@@ -346,6 +375,33 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToGetTransactionWithPagesWhoDoesNotExistTest() throws Exception {
+        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
+        existingUser.setBalance(100f);
+        userRepository.save(existingUser);
+        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        userRepository.save(existingUser2);
+        Transaction transaction1 = new Transaction(1, LocalDate.now(),"transactionTest1",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction1);
+        Transaction transaction2 = new Transaction(2, LocalDate.now(),"transactionTest2",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction2);
+        Transaction transaction3 = new Transaction(3, LocalDate.now(),"transactionTest3",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction3);
+        Transaction transaction4 = new Transaction(4, LocalDate.now(),"transactionTest4",10f,0.05f,existingUser,existingUser2);
+        transactionRepository.save(transaction4);
+
+        this.mockMvc
+                .perform(get("/transfer?page=5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("transfer"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("transaction"))
+                .andExpect(model().attributeExists("transactions"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToGetConnectionWithNoConnectionTest() throws Exception {
 
         this.mockMvc
@@ -353,6 +409,20 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("contact"))
                 .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("pageNumbers"));
+    }
+
+    @Test
+    @WithMockUser(username = "existingUserTest@email.test")
+    void shouldAllowAccessToGetTransactionWithNoTransactionTest() throws Exception {
+
+        this.mockMvc
+                .perform(get("/transfer"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("transfer"))
+                .andExpect(model().attributeExists("connections"))
+                .andExpect(model().attributeExists("transaction"))
+                .andExpect(model().attributeExists("transactions"))
                 .andExpect(model().attributeExists("pageNumbers"));
     }
 }
