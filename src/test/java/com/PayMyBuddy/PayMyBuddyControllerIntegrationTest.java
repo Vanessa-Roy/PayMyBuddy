@@ -248,6 +248,7 @@ public class PayMyBuddyControllerIntegrationTest {
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name","updateNameTest")
+                        .param("email","existingUserTest@email.test")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/profile?success"));
@@ -263,6 +264,7 @@ public class PayMyBuddyControllerIntegrationTest {
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name","update name Test")
+                        .param("email","existingUserTest@email.test")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/profile?success"));
@@ -278,6 +280,7 @@ public class PayMyBuddyControllerIntegrationTest {
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name","name-Test")
+                        .param("email","existingUserTest@email.test")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/profile?success"));

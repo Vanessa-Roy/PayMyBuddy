@@ -81,13 +81,11 @@ public class UserServiceTest {
     public void editPasswordShouldUpdateAttributePasswordUserTest() throws Exception {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("passwordTest0!", "newPasswordTest0!", "newPasswordTest0!");
-        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(passwordEncoder.matches(passwordDTO.getOldPassword(),user.getPassword())).thenReturn(true);
         when(passwordEncoder.encode(passwordDTO.getNewPassword())).thenReturn(passwordDTO.getNewPassword());
 
-        userServiceTest.editPassword(passwordDTO);
+        userServiceTest.editPassword(passwordDTO, user);
 
-        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(passwordEncoder, Mockito.times(1)).matches(passwordDTO.getOldPassword(),"passwordTest0!");
         verify(passwordEncoder, Mockito.times(1)).encode(passwordDTO.getNewPassword());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
@@ -99,10 +97,9 @@ public class UserServiceTest {
     public void editPasswordWithoutSameOldNewPasswordShouldNotUpdateAttributePasswordUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("wrongPasswordTest0!", "newPasswordTest0!", "newPasswordTest0!");
-        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(passwordEncoder.matches(passwordDTO.getOldPassword(),user.getPassword())).thenReturn(false);
 
-        Exception exception = assertThrows(OldPasswordException.class, () -> userServiceTest.editPassword(passwordDTO));
+        Exception exception = assertThrows(OldPasswordException.class, () -> userServiceTest.editPassword(passwordDTO, user));
         assertEquals("The old password doesn't match with the registered password", exception.getMessage());
         verify(userRepository, Mockito.never()).save(any(User.class));
     }
@@ -112,9 +109,8 @@ public class UserServiceTest {
     public void editPasswordWithoutSameNewMatchingPasswordShouldNotUpdateAttributePasswordUserTest() {
         user = new User("email@test.com",0f,"existingUser","passwordTest0!",new ArrayList<>());
         passwordDTO = new PasswordDTO("passwordTest0!", "newPasswordTest0!", "wrongNewPasswordTest0!");
-        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
 
-        Exception exception = assertThrows(MatchingPasswordException.class, () -> userServiceTest.editPassword(passwordDTO));
+        Exception exception = assertThrows(MatchingPasswordException.class, () -> userServiceTest.editPassword(passwordDTO, user));
         assertEquals("The matching password doesn't match with the password", exception.getMessage());
         verify(userRepository, Mockito.never()).save(any(User.class));
     }

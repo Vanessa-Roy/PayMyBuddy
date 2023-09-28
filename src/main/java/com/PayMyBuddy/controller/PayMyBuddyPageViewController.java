@@ -6,6 +6,7 @@ import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
+import com.PayMyBuddy.security.AuthenticatedUserProvider;
 import com.PayMyBuddy.security.CustomOAuth2User;
 import com.PayMyBuddy.service.TransactionService;
 import com.PayMyBuddy.service.UserService;
@@ -35,6 +36,9 @@ public class PayMyBuddyPageViewController {
     private UserService userService;
 
     @Autowired
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
+    @Autowired
     private TransactionService transactionService;
 
     @Autowired
@@ -42,8 +46,7 @@ public class PayMyBuddyPageViewController {
 
     @GetMapping("/home")
     public String home(Model model){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.loadUserByUsername(auth.getName());
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
         String name = currentUser.getName();
         model.addAttribute("name", name);
         return "home";
@@ -73,8 +76,7 @@ public class PayMyBuddyPageViewController {
     public String transfer(Model model, Optional<Integer> page){
         logger.info("request the transfer page");
         // to get the current user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.loadUserByUsername(auth.getName());
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
 
         // the following code handles the send Money functionality into the view
         UserDTO currentUserDTO = userService.mapToUserDto(currentUser);
@@ -103,8 +105,7 @@ public class PayMyBuddyPageViewController {
     public String contact(Model model, Optional<Integer> page){
         logger.info("request the contact page");
         // to get the current user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userService.loadUserByUsername(auth.getName());
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
 
         // the following code handles the connections pagination
         int currentPage = page.orElse(1);
@@ -124,9 +125,8 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/addConnection")
     public String addConnection(Model model){
         logger.info("request the add connection page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "addConnection";
     }
@@ -143,9 +143,8 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/profile")
     public String profile(Model model){
         logger.info("request the profile page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "profile";
     }
@@ -153,9 +152,8 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/editName")
     public String editName(Model model){
         logger.info("request the editName page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "editName";
     }
@@ -171,9 +169,8 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/deposit")
     public String deposit(Model model){
         logger.info("request the deposit page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "deposit";
     }
@@ -181,9 +178,8 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/withdraw")
     public String withdraw(Model model){
         logger.info("request the withdraw page");
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "withdraw";
     }
@@ -194,9 +190,8 @@ public class PayMyBuddyPageViewController {
         User connectionUser = userService.loadUserByUsername(email);
         UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
         model.addAttribute("receiverUser", connectionUserDto);
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         return "sendMoney";
     }

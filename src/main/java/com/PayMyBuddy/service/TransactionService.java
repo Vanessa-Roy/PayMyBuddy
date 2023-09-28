@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +35,7 @@ public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
 
     @Autowired
     private FareCalculatorService fareCalculatorService;
@@ -128,31 +128,29 @@ public class TransactionService {
         }
     }
 
-    public void withdraw(Float amount) throws NotEnoughtFundsException, InvalidAmountException {
+    public void withdraw(Float amount, User currentUser) throws NotEnoughtFundsException, InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
-        User existingUser = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        float currentUserBalance = existingUser.getBalance();
+        float currentUserBalance = currentUser.getBalance();
         float newUserBalance = currentUserBalance - amount;
         if (newUserBalance < 0) {
             throw new NotEnoughtFundsException();
         }
-        existingUser.setBalance(newUserBalance);
-        userRepository.save(existingUser);
-        logger.info("the balance's user {} has been updated", existingUser.getEmail());
+        currentUser.setBalance(newUserBalance);
+        userRepository.save(currentUser);
+        logger.info("the balance's user {} has been updated", currentUser.getEmail());
     }
 
-    public void deposit(Float amount) throws InvalidAmountException {
+    public void deposit(Float amount, User currentUser) throws InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
-        User existingUser = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
-        float currentUserBalance = existingUser.getBalance();
+        float currentUserBalance = currentUser.getBalance();
         float newUserBalance = currentUserBalance + amount;
-        existingUser.setBalance(newUserBalance);
-        userRepository.save(existingUser);
-        logger.info("the balance's user {} has been updated", existingUser.getEmail());
+        currentUser.setBalance(newUserBalance);
+        userRepository.save(currentUser);
+        logger.info("the balance's user {} has been updated", currentUser.getEmail());
     }
 
 }

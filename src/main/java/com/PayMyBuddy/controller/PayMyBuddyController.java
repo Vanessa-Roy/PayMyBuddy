@@ -4,14 +4,13 @@ import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
+import com.PayMyBuddy.security.AuthenticatedUserProvider;
 import com.PayMyBuddy.service.TransactionService;
 import com.PayMyBuddy.service.UserService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,6 +26,9 @@ public class PayMyBuddyController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthenticatedUserProvider authenticatedUserProvider;
 
     @Autowired
     private TransactionService transactionService;
@@ -48,9 +50,8 @@ public class PayMyBuddyController {
 
     @PostMapping("/transfer")
     public String sendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
         logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());
         try {
@@ -64,9 +65,8 @@ public class PayMyBuddyController {
 
     @PostMapping("/addConnection")
     public String addConnection(@ModelAttribute("email") String email, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
-        UserDTO user = userService.mapToUserDto(existingUser);
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        UserDTO user = userService.mapToUserDto(currentUser);
         logger.info("request a connection between the users {} and {}", user.getName(), email);
         try {
             userService.addConnection(user.getEmail(), email);
@@ -79,8 +79,7 @@ public class PayMyBuddyController {
 
     @PostMapping("/deleteConnection")
     public String postDeleteConnection(String email1, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
+        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         logger.info("request the connection delete between the users {} and {}", email1, user.getEmail());
         try {
@@ -111,14 +110,14 @@ public class PayMyBuddyController {
 
     @PostMapping("/editPassword")
     public String editPassword(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        logger.info("request the password's update of the user {}", auth.getName());
+        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the password's update of the user {}", existingUser.getName());
 
         if (bindingResult.hasErrors()) {
             return "editPassword";
         }
         try {
-            userService.editPassword(passwordDTO);
+            userService.editPassword(passwordDTO, existingUser);
             return "redirect:/logout";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -129,13 +128,12 @@ public class PayMyBuddyController {
 
     @PostMapping("/deposit")
     public String deposit(@ModelAttribute("amount") float amount, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
+        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         logger.info("request the deposit by the user {}", user.getName());
         try {
-            transactionService.deposit(amount);
+            transactionService.deposit(amount, existingUser);
             return "redirect:/profile?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -146,13 +144,12 @@ public class PayMyBuddyController {
 
     @PostMapping("/withdraw")
     public String withdraw(@ModelAttribute("amount") float amount, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
+        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         logger.info("request the withdraw by the user {}", user.getName());
         try {
-            transactionService.withdraw(amount);
+            transactionService.withdraw(amount, existingUser);
             return "redirect:/profile?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -162,8 +159,7 @@ public class PayMyBuddyController {
 
     @PostMapping("/sendMoney")
     public String postSendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("description") String description, String email1, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User existingUser = userService.loadUserByUsername(auth.getName());
+        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
         logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());

@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -72,28 +71,27 @@ public class UserService {
     }
 
     public void editName(UserDTO userDto) {
-        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        User currentUser = loadUserByUsername(userDto.getEmail());
 
-        existingUser.setName(userDto.getName());
+        currentUser.setName(userDto.getName());
 
-        userRepository.save(existingUser);
-        logger.info("the name's user {} has been updated", existingUser.getEmail());
+        userRepository.save(currentUser);
+        logger.info("the name's user {} has been updated", currentUser.getEmail());
     }
 
-    public void editPassword(PasswordDTO passwordDTO) throws MatchingPasswordException, OldPasswordException {
-        User existingUser = this.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+    public void editPassword(PasswordDTO passwordDTO, User currentUser) throws MatchingPasswordException, OldPasswordException {
 
         if (!passwordDTO.getNewPassword().equals(passwordDTO.getMatchingPassword())) {
             throw new MatchingPasswordException();
         }
 
-        if (!passwordEncoder.matches(passwordDTO.getOldPassword(),existingUser.getPassword())) {
+        if (!passwordEncoder.matches(passwordDTO.getOldPassword(),currentUser.getPassword())) {
             throw new OldPasswordException();
         }
 
-        existingUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
-        userRepository.save(existingUser);
-        logger.info("the password's user {} has been updated", existingUser.getEmail());
+        currentUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
+        userRepository.save(currentUser);
+        logger.info("the password's user {} has been updated", currentUser.getEmail());
     }
 
     public List<UserDTO> getConnections(UserDTO user) {

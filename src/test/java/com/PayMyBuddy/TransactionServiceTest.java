@@ -64,13 +64,11 @@ public class TransactionServiceTest {
     @WithMockUser(username = "email@test.com")
     public void withdrawShouldUpdateAttributeBalanceUserTest() throws NotEnoughtFundsException, InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
-        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
 
-        transactionServiceTest.withdraw(50f);
+        transactionServiceTest.withdraw(50f, user);
 
         assertEquals(50f,user.getBalance());
-        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
     }
 
@@ -78,19 +76,17 @@ public class TransactionServiceTest {
     @WithMockUser(username = "email@test.com")
     public void withdrawWithAmountGreaterThanBalanceShouldNotUpdateAttributeBalanceUserTest() {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
-        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
 
-        Exception exception = assertThrows(NotEnoughtFundsException.class, () -> transactionServiceTest.withdraw(150f));
+        Exception exception = assertThrows(NotEnoughtFundsException.class, () -> transactionServiceTest.withdraw(150f, user));
         assertEquals("The amount on your balance is not sufficient", exception.getMessage());
         assertEquals(100f,user.getBalance());
-        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.never()).save(any(User.class));
     }
 
     @Test
     public void withdrawWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() {
-        Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.withdraw(-50f));
+        Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.withdraw(-50f, user));
         assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.never()).save(any(User.class));
@@ -100,19 +96,17 @@ public class TransactionServiceTest {
     @WithMockUser(username = "email@test.com")
     public void depositShouldUpdateAttributeBalanceUserTest() throws InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
-        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(user);
         assertEquals(100f,user.getBalance());
 
-        transactionServiceTest.deposit(50f);
+        transactionServiceTest.deposit(50f, user);
 
         assertEquals(150f,user.getBalance());
-        verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
     }
 
     @Test
     public void depositWithNegativeAmountShouldNotUpdateAttributeBalanceUserTest() {
-        Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.deposit(-50f));
+        Exception exception = assertThrows(InvalidAmountException.class, () -> transactionServiceTest.deposit(-50f, user));
         assertEquals("The amount must be positive", exception.getMessage());
         verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
         verify(userRepository, Mockito.never()).save(any(User.class));
