@@ -7,7 +7,6 @@ import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.repository.UserRepository;
-import com.PayMyBuddy.validator.PasswordValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ import java.util.List;
 public class UserService {
 
     private static final Logger logger = LogManager.getLogger(PayMyBuddyApplication.class);
-
-    @Autowired
-    private PasswordValidator passwordValidator;
 
     @Autowired
     private UserRepository userRepository;
@@ -49,7 +45,9 @@ public class UserService {
             throw new UserAlreadyExistsException();
         }
 
-        passwordValidator.isValid(userDto);
+        if (!userDto.getPassword().equals(userDto.getMatchingPassword())) {
+            throw new MatchingPasswordException();
+        }
 
         User user = new User();
         user.setName(userDto.getName());
