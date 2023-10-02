@@ -16,6 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+/**
+ * The Security configuration of the application
+ *
+ */
 @Configuration
 @EnableWebSecurity
 public class PayMyBuddySecurityConfig {
@@ -31,11 +35,23 @@ public class PayMyBuddySecurityConfig {
     @Autowired
     UserRepository userRepository;
 
+    /**
+     * Password encoder initialization.
+     *
+     * @return the password encoder
+     */
     @Bean
     public static PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configuration of the security filter chain.
+     *
+     * @param http the http
+     * @return the security filter chain
+     * @throws Exception the exception
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(Customizer.withDefaults())
@@ -69,6 +85,12 @@ public class PayMyBuddySecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configure global.
+     *
+     * @param auth the auth
+     * @throws Exception the exception
+     */
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth

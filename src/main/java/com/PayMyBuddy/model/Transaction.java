@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+/**
+ * Represent a transaction
+ */
 @Getter
 @Setter
 @Entity

@@ -17,6 +17,9 @@ import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The configuration of OAuth2User service.
+ */
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
@@ -35,6 +38,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return customUser;
     }
 
+    /**
+     * Gets the user's email from GitHub
+     *
+     * @param userRequest the user's request who want to connect from GitHub
+     * @return the user's email
+     * @throws URISyntaxException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private static String getGithubEmail(OAuth2UserRequest userRequest) throws URISyntaxException, IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI("https://api.github.com/user/emails"))

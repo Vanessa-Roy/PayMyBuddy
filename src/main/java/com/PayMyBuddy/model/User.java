@@ -6,6 +6,9 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represent an user
+ */
 @Entity
 @Setter
 @Getter

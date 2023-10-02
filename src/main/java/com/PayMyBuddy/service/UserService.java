@@ -19,6 +19,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Centralize every methods relatives to the user.
+ */
 @Service
 public class UserService {
 
@@ -33,10 +36,22 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Load user by username user.
+     *
+     * @param email the email to search for
+     * @return the user
+     */
     public User loadUserByUsername(String email) {
         return userRepository.findByEmail(email);
     }
 
+    /**
+     * Save user.
+     *
+     * @param userDto the user to create
+     * @throws Exception the exception
+     */
     public void saveUser(UserDTO userDto) throws Exception {
 
         User existingUser = loadUserByUsername(userDto.getEmail());
@@ -59,6 +74,12 @@ public class UserService {
         logger.info("the user {} has been created", user.getEmail());
     }
 
+    /**
+     * Map to user dto user dto.
+     *
+     * @param user the user
+     * @return the user dto
+     */
     public UserDTO mapToUserDto(User user){
         UserDTO userDto = new UserDTO();
         userDto.setName(user.getName());
@@ -68,6 +89,12 @@ public class UserService {
         return userDto;
     }
 
+    /**
+     * Edit name.
+     *
+     * @param nameUser    the new name user
+     * @param currentUser the current user
+     */
     public void editName(String nameUser, User currentUser) {
 
         currentUser.setName(nameUser);
@@ -76,6 +103,14 @@ public class UserService {
         logger.info("the name's user {} has been updated", currentUser.getEmail());
     }
 
+    /**
+     * Edit password.
+     *
+     * @param passwordDTO the password dto
+     * @param currentUser the current user
+     * @throws MatchingPasswordException the matching password exception
+     * @throws OldPasswordException      the old password exception
+     */
     public void editPassword(PasswordDTO passwordDTO, User currentUser) throws MatchingPasswordException, OldPasswordException {
 
         if (!passwordDTO.getNewPassword().equals(passwordDTO.getMatchingPassword())) {
@@ -91,6 +126,12 @@ public class UserService {
         logger.info("the password's user {} has been updated", currentUser.getEmail());
     }
 
+    /**
+     * Gets connections.
+     *
+     * @param user the user to search for
+     * @return a list of users
+     */
     public List<UserDTO> getConnections(UserDTO user) {
         Iterable<String> connectionsEmails = userRepository.findAllConnectionsByEmail(user.getEmail());
         List<UserDTO> connections = new ArrayList<>();
@@ -98,6 +139,13 @@ public class UserService {
         return connections;
     }
 
+    /**
+     * Gets connections.
+     *
+     * @param userEmail the user email to search for
+     * @param pageable  the pageable
+     * @return a list of users as pages
+     */
     public Page<UserDTO> getConnections(String userEmail, Pageable pageable) {
 
         Page<String> connections = userRepository.findAllConnectionsByEmail(userEmail, pageable);
@@ -110,6 +158,14 @@ public class UserService {
         return new PageImpl<>(connectionsDTO, pageable, connections.getTotalElements());
     }
 
+    /**
+     * Add connection.
+     *
+     * @param emailUser1 the current user
+     * @param emailUser2 the user to add as connection
+     * @throws AlreadyExistingConnection the already existing connection
+     * @throws UserDoesntExistException  the user doesnt exist exception
+     */
     public void addConnection(String emailUser1, String emailUser2) throws AlreadyExistingConnection, UserDoesntExistException {
         User user1 = userRepository.findByEmail(emailUser1);
 
@@ -129,6 +185,13 @@ public class UserService {
         logger.info("the connection between user {} and user {} has been created", user1.getEmail(), user2.getEmail());
     }
 
+    /**
+     * Delete connection.
+     *
+     * @param emailUser1 the user to delete as connection
+     * @param emailUser2 the current user
+     * @throws NotExistingConnection the not existing connection
+     */
     public void deleteConnection(String emailUser1, String emailUser2) throws NotExistingConnection {
         User user1 = userRepository.findByEmail(emailUser1);
 

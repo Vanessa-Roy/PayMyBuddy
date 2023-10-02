@@ -3,6 +3,9 @@ package com.PayMyBuddy.dto;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+/**
+ * Represents a dto used to update a user's password.
+ */
 @Setter
 @Getter
 @AllArgsConstructor

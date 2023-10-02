@@ -27,6 +27,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Management of the view though the controller.
+ */
 @Controller
 public class PayMyBuddyPageViewController {
 
@@ -44,6 +47,12 @@ public class PayMyBuddyPageViewController {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    /**
+     * Home Get Get endpoint.
+     *
+     * @param model the model
+     * @return the view "home" with the attribute "name"
+     */
     @GetMapping("/home")
     public String home(Model model){
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -52,8 +61,14 @@ public class PayMyBuddyPageViewController {
         return "home";
     }
 
+    /**
+     * register Get endpoint.
+     *
+     * @param model the model
+     * @return the view "register" with the attribute "user"
+     */
     @GetMapping("/register")
-    public String showRegistrationForm(Model model){
+    public String register(Model model){
         logger.info("request the form page");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
@@ -66,12 +81,25 @@ public class PayMyBuddyPageViewController {
         return "register";
     }
 
+    /**
+     * Login Get endpoint.
+     *
+     * @return the view "login"
+     */
     @GetMapping("/login")
     public String login(){
         logger.info("request the login page");
         return "login";
     }
 
+    /**
+     * Transfer Get endpoint.
+     *
+     * @param model the model
+     * @param page  the page
+     * @return the "transfer" view with pagination and the attributes :
+     * "connections", "transactions" and "pageNumbers"
+     */
     @GetMapping("/transfer")
     public String transfer(Model model, Optional<Integer> page){
         logger.info("request the transfer page");
@@ -99,6 +127,14 @@ public class PayMyBuddyPageViewController {
         return "transfer";
     }
 
+    /**
+     * Contact Get endpoint.
+     *
+     * @param model the model
+     * @param page  the page
+     * @return the "contact" view with pagination and the attributes :
+     * "connections" and "pageNumbers"
+     */
     @GetMapping("/contact")
     public String contact(Model model, Optional<Integer> page){
         logger.info("request the contact page");
@@ -120,6 +156,12 @@ public class PayMyBuddyPageViewController {
         return "contact";
     }
 
+    /**
+     * Add connection Get endpoint.
+     *
+     * @param model the model
+     * @return the view "addConnection" with the attribute "user"
+     */
     @GetMapping("/addConnection")
     public String addConnection(Model model){
         logger.info("request the add connection page");
@@ -129,8 +171,15 @@ public class PayMyBuddyPageViewController {
         return "addConnection";
     }
 
+    /**
+     * Delete connection Get endpoint.
+     *
+     * @param email the email to delete
+     * @param model the model
+     * @return the view "deleteConnection" with the attribute "user"
+     */
     @GetMapping("/deleteConnection")
-    public String getDeleteConnection(String email, Model model){
+    public String deleteConnection(String email, Model model){
         logger.info("request the delete connection page");
         User connectionUser = userService.loadUserByUsername(email);
         UserDTO user = userService.mapToUserDto(connectionUser);
@@ -138,6 +187,12 @@ public class PayMyBuddyPageViewController {
         return "deleteConnection";
     }
 
+    /**
+     * Profile Get endpoint.
+     *
+     * @param model the model
+     * @return the view "profile" with the attribute "user"
+     */
     @GetMapping("/profile")
     public String profile(Model model){
         logger.info("request the profile page");
@@ -147,6 +202,12 @@ public class PayMyBuddyPageViewController {
         return "profile";
     }
 
+    /**
+     * Edit name Get endpoint.
+     *
+     * @param model the model
+     * @return the view "editName" with the attribute "user"
+     */
     @GetMapping("/editName")
     public String editName(Model model){
         logger.info("request the editName page");
@@ -156,6 +217,12 @@ public class PayMyBuddyPageViewController {
         return "editName";
     }
 
+    /**
+     * Edit password Get endpoint.
+     *
+     * @param model the model
+     * @return the view "editPassword" with the attribute "password"
+     */
     @GetMapping("/editPassword")
     public String editPassword(Model model){
         logger.info("request the editPassword page");
@@ -164,6 +231,12 @@ public class PayMyBuddyPageViewController {
         return "editPassword";
     }
 
+    /**
+     * Deposit Get endpoint.
+     *
+     * @param model the model
+     * @return the view "deposit" with the attribute "user"
+     */
     @GetMapping("/deposit")
     public String deposit(Model model){
         logger.info("request the deposit page");
@@ -173,6 +246,12 @@ public class PayMyBuddyPageViewController {
         return "deposit";
     }
 
+    /**
+     * Withdraw Get endpoint.
+     *
+     * @param model the model
+     * @return the view "withdraw" with the attribute "user"
+     */
     @GetMapping("/withdraw")
     public String withdraw(Model model){
         logger.info("request the withdraw page");
@@ -182,8 +261,16 @@ public class PayMyBuddyPageViewController {
         return "withdraw";
     }
 
+    /**
+     * Send money Get endpoint.
+     *
+     * @param email the email to send Money to
+     * @param model the model
+     * @return the view "sendMoney" with the attributes :
+     * "receiverUser" and "user"
+     */
     @GetMapping("/sendMoney")
-    public String getSendMoney(String email, Model model){
+    public String sendMoney(String email, Model model){
         logger.info("request the send money page");
         User connectionUser = userService.loadUserByUsername(email);
         UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);

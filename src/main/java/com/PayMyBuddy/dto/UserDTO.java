@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Objects;
 
 
+/**
+ * Represents a dto used to create or update a real user.
+ */
 @Setter
 @Getter
 @AllArgsConstructor
@@ -35,12 +38,26 @@ public class UserDTO {
 
     private List<User> connections = new ArrayList<>();
 
+    /**
+     * Instantiates a new User dto.
+     *
+     * @param displayName      the display name
+     * @param password         the password
+     * @param matchingPassword the matching password
+     * @param email            the email
+     */
     public UserDTO(String displayName, String password, String matchingPassword, String email) {
         this(displayName, email);
         this.password = password;
         this.matchingPassword = matchingPassword;
     }
 
+    /**
+     * Instantiates a new User dto.
+     *
+     * @param displayName the display name
+     * @param email       the email
+     */
     public UserDTO(String displayName, String email) {
         this.name = displayName;
         this.email = email;

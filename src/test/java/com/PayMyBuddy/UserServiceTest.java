@@ -6,7 +6,6 @@ import com.PayMyBuddy.exception.*;
 import com.PayMyBuddy.model.User;
 import com.PayMyBuddy.repository.UserRepository;
 import com.PayMyBuddy.service.UserService;
-import com.PayMyBuddy.validator.PasswordValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,8 +39,6 @@ public class UserServiceTest {
     @Mock
     private static UserRepository userRepository;
     @Mock
-    private static PasswordValidator passwordValidator;
-    @Mock
     private static PasswordEncoder passwordEncoder;
     private static User user;
     private static UserDTO userDTO;
@@ -54,14 +51,12 @@ public class UserServiceTest {
 
     @Test
     public void saveUserDoesNotExistShouldCreateNewUserTest() throws Exception {
-        when(passwordValidator.isValid(userDTO)).thenReturn(true);
         when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(null);
         when(passwordEncoder.encode(userDTO.getPassword())).thenReturn(userDTO.getPassword());
 
         userServiceTest.saveUser(userDTO);
 
         verify(userRepository, Mockito.times(1)).findByEmail(userDTO.getEmail());
-        verify(passwordValidator, Mockito.times(1)).isValid(userDTO);
         verify(passwordEncoder, Mockito.times(1)).encode(userDTO.getPassword());
         verify(userRepository, Mockito.times(1)).save(any(User.class));
     }

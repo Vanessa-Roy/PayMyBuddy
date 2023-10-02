@@ -3,7 +3,7 @@ package com.PayMyBuddy;
 import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.exception.InvalidAmountException;
-import com.PayMyBuddy.exception.NotEnoughtFundsException;
+import com.PayMyBuddy.exception.NotEnoughFundsException;
 import com.PayMyBuddy.exception.NotExistingConnection;
 import com.PayMyBuddy.exception.UserDoesntExistException;
 import com.PayMyBuddy.model.Transaction;
@@ -62,7 +62,7 @@ public class TransactionServiceTest {
     }
     @Test
     @WithMockUser(username = "email@test.com")
-    public void withdrawShouldUpdateAttributeBalanceUserTest() throws NotEnoughtFundsException, InvalidAmountException {
+    public void withdrawShouldUpdateAttributeBalanceUserTest() throws NotEnoughFundsException, InvalidAmountException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         assertEquals(100f,user.getBalance());
 
@@ -78,7 +78,7 @@ public class TransactionServiceTest {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         assertEquals(100f,user.getBalance());
 
-        Exception exception = assertThrows(NotEnoughtFundsException.class, () -> transactionServiceTest.withdraw(150f, user));
+        Exception exception = assertThrows(NotEnoughFundsException.class, () -> transactionServiceTest.withdraw(150f, user));
         assertEquals("The amount on your balance is not sufficient", exception.getMessage());
         assertEquals(100f,user.getBalance());
         verify(userRepository, Mockito.never()).save(any(User.class));
@@ -191,7 +191,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyUser1toUser2ShouldUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>(List.of(user)));
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
@@ -265,7 +265,7 @@ public class TransactionServiceTest {
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
         when(fareCalculatorService.calculateFare(200f)).thenReturn(1.0f);
 
-        Exception exception = assertThrows(NotEnoughtFundsException.class, () ->
+        Exception exception = assertThrows(NotEnoughFundsException.class, () ->
                 transactionServiceTest.sendMoney(200f, "transactionTest", user.getEmail(), user2.getEmail()));
 
         assertEquals("The amount on your balance is not sufficient", exception.getMessage());
@@ -277,7 +277,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownReceiverUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownReceiverUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughFundsException {
         user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
         when(userRepository.findByEmail("email2@test.com")).thenReturn(null);
@@ -294,7 +294,7 @@ public class TransactionServiceTest {
 
     @Test
     @WithMockUser(username = "email@test.com")
-    public void sendMoneyWithUnknownSenderUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughtFundsException {
+    public void sendMoneyWithUnknownSenderUserShouldNotUpdateAttributeBalanceBothUsersTest() throws NotExistingConnection, UserDoesntExistException, InvalidAmountException, NotEnoughFundsException {
         User user2 = new User("email2@test.com",100f,"user2Test","passwordTest0!",new ArrayList<>());
         when(userRepository.findByEmail("email@test.com")).thenReturn(null);
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);

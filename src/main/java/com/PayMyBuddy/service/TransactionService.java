@@ -3,7 +3,7 @@ package com.PayMyBuddy.service;
 import com.PayMyBuddy.PayMyBuddyApplication;
 import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.exception.InvalidAmountException;
-import com.PayMyBuddy.exception.NotEnoughtFundsException;
+import com.PayMyBuddy.exception.NotEnoughFundsException;
 import com.PayMyBuddy.exception.NotExistingConnection;
 import com.PayMyBuddy.exception.UserDoesntExistException;
 import com.PayMyBuddy.model.Transaction;
@@ -25,6 +25,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Centralize every methods relatives to the transaction.
+ */
 @Service
 public class TransactionService {
 
@@ -40,6 +43,13 @@ public class TransactionService {
     @Autowired
     private FareCalculatorService fareCalculatorService;
 
+    /**
+     * Gets transactions.
+     *
+     * @param userEmail the email to search for
+     * @param pageable  the pageable
+     * @return a list of transactions as pages
+     */
     public Page<TransactionDTO> getTransactions(String userEmail, Pageable pageable) {
 
         User currentUser = userRepository.findByEmail(userEmail);
@@ -70,8 +80,20 @@ public class TransactionService {
         return new PageImpl<>(transactionsDTO, pageable, transactions.getTotalElements());
     }
 
+    /**
+     * Send money.
+     *
+     * @param amount        the amount to transfer
+     * @param description   the description about the transfer
+     * @param receiverEmail the receiver email
+     * @param senderEmail   the sender email
+     * @throws InvalidAmountException   the invalid amount exception
+     * @throws UserDoesntExistException the user doesnt exist exception
+     * @throws NotEnoughFundsException the not enought funds exception
+     * @throws NotExistingConnection    the not existing connection
+     */
     @Transactional
-    public void sendMoney(float amount, String description, String receiverEmail, String senderEmail) throws InvalidAmountException, UserDoesntExistException, NotEnoughtFundsException, NotExistingConnection {
+    public void sendMoney(float amount, String description, String receiverEmail, String senderEmail) throws InvalidAmountException, UserDoesntExistException, NotEnoughFundsException, NotExistingConnection {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
@@ -96,7 +118,7 @@ public class TransactionService {
             float newSenderUserBalance = currentSenderUserBalance - amount - currentTransactionFee;
 
             if (newSenderUserBalance < 0) {
-                throw new NotEnoughtFundsException();
+                throw new NotEnoughFundsException();
             }
 
             newSenderUserBalance = new BigDecimal(newSenderUserBalance).setScale(2, RoundingMode.HALF_EVEN).floatValue();
@@ -128,20 +150,35 @@ public class TransactionService {
         }
     }
 
-    public void withdraw(Float amount, User currentUser) throws NotEnoughtFundsException, InvalidAmountException {
+    /**
+     * Withdraw.
+     *
+     * @param amount      the amount to transfer to the user's bank
+     * @param currentUser the current user
+     * @throws NotEnoughFundsException the not enough funds exception
+     * @throws InvalidAmountException   the invalid amount exception
+     */
+    public void withdraw(Float amount, User currentUser) throws NotEnoughFundsException, InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException();
         }
         float currentUserBalance = currentUser.getBalance();
         float newUserBalance = currentUserBalance - amount;
         if (newUserBalance < 0) {
-            throw new NotEnoughtFundsException();
+            throw new NotEnoughFundsException();
         }
         currentUser.setBalance(newUserBalance);
         userRepository.save(currentUser);
         logger.info("the balance's user {} has been updated", currentUser.getEmail());
     }
 
+    /**
+     * Deposit.
+     *
+     * @param amount      the amount to transfer from the user's bank
+     * @param currentUser the current user
+     * @throws InvalidAmountException the invalid amount exception
+     */
     public void deposit(Float amount, User currentUser) throws InvalidAmountException {
         if (amount <= 0) {
             throw new InvalidAmountException();

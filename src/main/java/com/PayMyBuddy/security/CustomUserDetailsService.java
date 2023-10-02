@@ -8,11 +8,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
+/**
+ * The Configuration of UserDetailsService.
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private UserRepository userRepository;
 
+    /**
+     * Instantiates a new configured user details service.
+     *
+     * @param userRepository the user repository
+     */
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -22,11 +30,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email);
 
         if (user != null) {
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
+            return org.springframework.security.core.userdetails.User
                     .withUsername(user.getEmail())
                     .password(user.getPassword())
                     .build();
-            return userDetails;
         }else{
             throw new UsernameNotFoundException("Invalid username or password.");
         }

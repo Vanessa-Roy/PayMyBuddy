@@ -12,6 +12,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * Represents a dto used to create a real transaction.
+ */
 @Setter
 @Getter
 @AllArgsConstructor

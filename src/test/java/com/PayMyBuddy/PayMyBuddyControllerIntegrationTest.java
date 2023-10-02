@@ -612,7 +612,7 @@ public class PayMyBuddyControllerIntegrationTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/transfer?success"));
 
-        assertEquals(1,transactionRepository.findBySenderUser(userRepository.findByEmail("existingUserTest@email.test")).size());
+        assertEquals(1,transactionRepository.findBySenderUser(existingUser).size());
         assertEquals(0,userRepository.findByEmail(existingUser.getEmail()).getBalance());
         assertEquals(10f,userRepository.findByEmail(existingUser2.getEmail()).getBalance());
     }

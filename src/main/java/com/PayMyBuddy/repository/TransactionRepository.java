@@ -9,13 +9,28 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Load and save data relatives to transactions.
+ */
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
+    /**
+     * Find by sender user.
+     *
+     * @param user the senderUser
+     * @return a list of transactions
+     */
     List<Transaction> findBySenderUser(User user);
 
-    List<Transaction> findByReceiverUser(User user);
-
+    /**
+     * Find by sender user or receiver user.
+     *
+     * @param senderUser   the sender user
+     * @param receiverUser the receiver user
+     * @param pageable     the pageable
+     * @return a list of transaction as pages
+     */
     Page<Transaction> findBySenderUserOrReceiverUser(User senderUser, User receiverUser, Pageable pageable);
 
 }

@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Management of the POST requests though the controller.
+ */
 @Controller
 public class PayMyBuddyController {
 
@@ -40,6 +43,14 @@ public class PayMyBuddyController {
     @Autowired
     private TransactionService transactionService;
 
+    /**
+     * Registration Post endpoint to register a new user
+     *
+     * @param userDto       the user dto to create a user
+     * @param bindingResult the binding result in case of invalid parameters
+     * @param model         the model
+     * @return the view "home" in case of success and "register" in the opposite
+     */
     @PostMapping("/register")
     public String registration(@Valid @ModelAttribute("user") UserDTO userDto, BindingResult bindingResult, Model model) {
         logger.info("request the creating of the user {}", userDto.getName());
@@ -55,8 +66,16 @@ public class PayMyBuddyController {
         }
     }
 
+    /**
+     * transfer Post endpoint to make a transaction between two users.
+     *
+     * @param amount the amount to send
+     * @param email1 the email 1 to send money to
+     * @param model  the model
+     * @return the view "transfer" with a success or error message
+     */
     @PostMapping("/transfer")
-    public String sendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
+    public String sendMoneyFromTransfer(@ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(currentUser);
         model.addAttribute("user", user);
@@ -84,6 +103,13 @@ public class PayMyBuddyController {
 
     }
 
+    /**
+     * Add connection Post endpoint to add a new contact.
+     *
+     * @param email the email to add
+     * @param model the model
+     * @return the view "contact" in case of success and "addConnection" in the opposite
+     */
     @PostMapping("/addConnection")
     public String addConnection(@ModelAttribute("email") String email, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -98,8 +124,15 @@ public class PayMyBuddyController {
         }
     }
 
+    /**
+     * Delete connection Post endpoint to remove a contact.
+     *
+     * @param email1 the email to remove
+     * @param model  the model
+     * @return the view "contact" in case of success and "deleteConnection" in the opposite
+     */
     @PostMapping("/deleteConnection")
-    public String postDeleteConnection(String email1, Model model) {
+    public String deleteConnection(String email1, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         logger.info("request the connection delete between the users {} and {}", email1, user.getEmail());
@@ -113,6 +146,14 @@ public class PayMyBuddyController {
         }
     }
 
+    /**
+     * Edit name Post endpoint to update the user's name.
+     *
+     * @param nameUser      the new name
+     * @param bindingResult the binding result
+     * @param model         the model
+     * @return the view "profile" in case of success and "editName" in the opposite
+     */
     @PostMapping("/editName")
     public String editName(@Valid @ModelAttribute("user") UserDTO nameUser, BindingResult bindingResult, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -132,6 +173,14 @@ public class PayMyBuddyController {
     }
 
 
+    /**
+     * Edit password Post endpoint to update the user's password.
+     *
+     * @param passwordDTO   the password dto containing the old and new one
+     * @param bindingResult the binding result
+     * @param model         the model
+     * @return the view "logout" in case of success and "editPassword" in the opposite
+     */
     @PostMapping("/editPassword")
     public String editPassword(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -150,6 +199,13 @@ public class PayMyBuddyController {
     }
 
 
+    /**
+     * Deposit Post endpoint to transfer money from the user's bank.
+     *
+     * @param amount the amount to transfer
+     * @param model  the model
+     * @return the view "profile" in case of success and "deposit" in the opposite
+     */
     @PostMapping("/deposit")
     public String deposit(@ModelAttribute("amount") float amount, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -166,6 +222,13 @@ public class PayMyBuddyController {
     }
 
 
+    /**
+     * Withdraw Post endpoint to transfer money to the user's bank.
+     *
+     * @param amount the amount to transfer
+     * @param model  the model
+     * @return the view "profile" in case of success and "withdraw" in the opposite
+     */
     @PostMapping("/withdraw")
     public String withdraw(@ModelAttribute("amount") float amount, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
@@ -181,8 +244,18 @@ public class PayMyBuddyController {
         }
     }
 
+    /**
+     * send money Post endpoint .
+     *
+     * @param amount      the amount to transfer
+     * @param amount      the amount to transfer
+     * @param description the description about the transfer
+     * @param email1      the email to transfer
+     * @param model       the model
+     * @return the view "transfer" in case of success and "sendMoney" in the opposite
+     */
     @PostMapping("/sendMoney")
-    public String postSendMoney(@ModelAttribute("amount") float amount, @ModelAttribute("description") String description, String email1, Model model) {
+    public String sendMoneyFromContact(@ModelAttribute("amount") float amount, @ModelAttribute("description") String description, String email1, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
         model.addAttribute("user", user);
