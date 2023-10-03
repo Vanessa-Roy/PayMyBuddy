@@ -38,10 +38,10 @@ public class PayMyBuddyController {
     private UserService userService;
 
     @Autowired
-    private AuthenticatedUserProvider authenticatedUserProvider;
+    private TransactionService transactionService;
 
     @Autowired
-    private TransactionService transactionService;
+    private AuthenticatedUserProvider authenticatedUserProvider;
 
     /**
      * Registration Post endpoint to register a new user
@@ -59,7 +59,7 @@ public class PayMyBuddyController {
         }
         try {
             userService.saveUser(userDto);
-            return "redirect:/home?success";
+            return "redirect:/home";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "register";
@@ -67,7 +67,7 @@ public class PayMyBuddyController {
     }
 
     /**
-     * transfer Post endpoint to make a transaction between two users.
+     * Transfer Post endpoint to make a transaction between two users.
      *
      * @param amount the amount to send
      * @param email1 the email 1 to send money to
@@ -106,17 +106,17 @@ public class PayMyBuddyController {
     /**
      * Add connection Post endpoint to add a new contact.
      *
-     * @param email the email to add
+     * @param connectionEmail the email to add
      * @param model the model
      * @return the view "contact" in case of success and "addConnection" in the opposite
      */
     @PostMapping("/addConnection")
-    public String addConnection(@ModelAttribute("email") String email, Model model) {
+    public String addConnection(@ModelAttribute("email") String connectionEmail, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(currentUser);
-        logger.info("request a connection between the users {} and {}", user.getName(), email);
+        logger.info("request a connection between the users {} and {}", user.getName(), connectionEmail);
         try {
-            userService.addConnection(user.getEmail(), email);
+            userService.addConnection(user.getEmail(), connectionEmail);
             return "redirect:/contact?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -127,17 +127,17 @@ public class PayMyBuddyController {
     /**
      * Delete connection Post endpoint to remove a contact.
      *
-     * @param email1 the email to remove
+     * @param connectionEmail the email to remove
      * @param model  the model
      * @return the view "contact" in case of success and "deleteConnection" in the opposite
      */
     @PostMapping("/deleteConnection")
-    public String deleteConnection(String email1, Model model) {
+    public String deleteConnection(String connectionEmail, Model model) {
         User existingUser = authenticatedUserProvider.getAuthenticatedUser();
         UserDTO user = userService.mapToUserDto(existingUser);
-        logger.info("request the connection delete between the users {} and {}", email1, user.getEmail());
+        logger.info("request the connection delete between the users {} and {}", connectionEmail, user.getEmail());
         try {
-            userService.deleteConnection(email1, user.getEmail());
+            userService.deleteConnection(user.getEmail(), connectionEmail);
             return "redirect:/contact?success";
         } catch (Exception e) {
             model.addAttribute("user", user);

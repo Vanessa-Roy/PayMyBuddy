@@ -5,7 +5,6 @@ import com.PayMyBuddy.dto.PasswordDTO;
 import com.PayMyBuddy.dto.TransactionDTO;
 import com.PayMyBuddy.dto.UserDTO;
 import com.PayMyBuddy.model.User;
-import com.PayMyBuddy.repository.TransactionRepository;
 import com.PayMyBuddy.security.AuthenticatedUserProvider;
 import com.PayMyBuddy.security.CustomOAuth2User;
 import com.PayMyBuddy.service.TransactionService;
@@ -39,16 +38,14 @@ public class PayMyBuddyPageViewController {
     private UserService userService;
 
     @Autowired
-    private AuthenticatedUserProvider authenticatedUserProvider;
-
-    @Autowired
     private TransactionService transactionService;
 
     @Autowired
-    private TransactionRepository transactionRepository;
+    private AuthenticatedUserProvider authenticatedUserProvider;
+
 
     /**
-     * Home Get Get endpoint.
+     * Home Get endpoint.
      *
      * @param model the model
      * @return the view "home" with the attribute "name"

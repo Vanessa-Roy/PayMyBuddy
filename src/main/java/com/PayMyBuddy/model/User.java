@@ -30,11 +30,7 @@ public class User {
     private String password;
 
     @ManyToMany(
-            fetch = FetchType.EAGER,
-            cascade = {
-                    CascadeType.PERSIST,
-                    CascadeType.MERGE
-            }
+            fetch = FetchType.EAGER
     )
     @JoinTable(
             name = "connections",

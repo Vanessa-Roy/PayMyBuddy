@@ -34,15 +34,11 @@ public class Transaction {
     @Column(nullable = false)
     private float fee;
 
-    @ManyToOne(
-            cascade = CascadeType.ALL
-    )
+    @ManyToOne()
     @JoinColumn(name="sender_user")
     private User senderUser;
 
-    @ManyToOne(
-            cascade = CascadeType.ALL
-    )
+    @ManyToOne()
     @JoinColumn(name="receiver_user")
     private User receiverUser;
 }

@@ -22,7 +22,9 @@
 
         <div class="card ">
             <div class="card-body">
-                <img class="col-md-4 offset-md-4" th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo" style="width:200px"/>
+                <div class="d-flex justify-content-center">
+                    <img th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo" style="width:200px"/>
+                </div>
                 <h5 class="mt-1 text-center card-title">Registration</h5>
                 <div sec:authorize="isAnonymous()" class="d-flex justify-content-center">
                     <a class="text-center btn btn-outline-success ms-1" th:href="@{/oauth2/authorization/github}" style="width:200px">

@@ -105,7 +105,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/home?success"));
+                .andExpect(view().name("redirect:/home"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
@@ -122,7 +122,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/home?success"));
+                .andExpect(view().name("redirect:/home"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
@@ -139,7 +139,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("email","userTest@email.com")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/home?success"));
+                .andExpect(view().name("redirect:/home"));
 
         assertNotNull((userService.loadUserByUsername("userTest@email.com")));
     }
@@ -441,7 +441,7 @@ public class PayMyBuddyControllerIntegrationTest {
         this.mockMvc
                 .perform(post("/deleteConnection")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("email1","existingUser2Test@email.test")
+                        .param("connectionEmail","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/contact?success"))

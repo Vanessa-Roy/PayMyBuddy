@@ -188,8 +188,8 @@ public class UserService {
     /**
      * Delete connection.
      *
-     * @param emailUser1 the user to delete as connection
-     * @param emailUser2 the current user
+     * @param emailUser1 the current user
+     * @param emailUser2 the user to delete as connection
      * @throws NotExistingConnection the not existing connection
      */
     public void deleteConnection(String emailUser1, String emailUser2) throws NotExistingConnection {
