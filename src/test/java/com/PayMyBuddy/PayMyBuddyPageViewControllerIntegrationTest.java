@@ -84,6 +84,9 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     void setUpTest() throws Exception {
         UserDTO existingUser = new UserDTO("existingUserNameTest","passwordTest!0","passwordTest!0","existingUserTest@email.test", 0f, new ArrayList<>());
         userService.saveUser(existingUser);
+
+        UserDTO existingUser2 = new UserDTO("existingUser2NameTest","passwordTest!0","passwordTest!0","existingUser2Test@email.test", 0f, new ArrayList<>());
+        userService.saveUser(existingUser2);
     }
 
     @Autowired
@@ -172,8 +175,7 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
         this.mockMvc
                 .perform(get("/addConnection"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("addConnection"))
-                .andExpect(model().attributeExists("user"));
+                .andExpect(view().name("addConnection"));
     }
 
     @Test
@@ -309,7 +311,8 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToGetConnectionWithPagesTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser2.getConnections().add((existingUser));
         userRepository.save(existingUser2);
         User existingUser3 = new User("existingUser3Test@email.test",0f,"existingUser3NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
         userRepository.save(existingUser3);
@@ -332,7 +335,8 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(100f);
         userRepository.save(existingUser);
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser2.getConnections().add((existingUser));
         userRepository.save(existingUser2);
         Transaction transaction1 = new Transaction(1, LocalDate.now(),"transactionTest1",10f,0.05f,existingUser,existingUser2);
         transactionRepository.save(transaction1);
@@ -355,14 +359,9 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
     @WithMockUser(username = "existingUserTest@email.test")
     void shouldAllowAccessToGetConnectionWithPagesWhoDoesNotExistTest() throws Exception {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser2.getConnections().add((existingUser));
         userRepository.save(existingUser2);
-        User existingUser3 = new User("existingUser3Test@email.test",0f,"existingUser3NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
-        userRepository.save(existingUser3);
-        User existingUser4 = new User("existingUser4Test@email.test",0f,"existingUser4NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
-        userRepository.save(existingUser4);
-        User existingUser5 = new User("existingUser5Test@email.test",0f,"existingUser5NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
-        userRepository.save(existingUser5);
 
         this.mockMvc
                 .perform(get("/contact?page=5"))
@@ -378,16 +377,9 @@ public class PayMyBuddyPageViewControllerIntegrationTest {
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setBalance(100f);
         userRepository.save(existingUser);
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of(existingUser)));
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
+        existingUser2.getConnections().add((existingUser));
         userRepository.save(existingUser2);
-        Transaction transaction1 = new Transaction(1, LocalDate.now(),"transactionTest1",10f,0.05f,existingUser,existingUser2);
-        transactionRepository.save(transaction1);
-        Transaction transaction2 = new Transaction(2, LocalDate.now(),"transactionTest2",10f,0.05f,existingUser,existingUser2);
-        transactionRepository.save(transaction2);
-        Transaction transaction3 = new Transaction(3, LocalDate.now(),"transactionTest3",10f,0.05f,existingUser,existingUser2);
-        transactionRepository.save(transaction3);
-        Transaction transaction4 = new Transaction(4, LocalDate.now(),"transactionTest4",10f,0.05f,existingUser,existingUser2);
-        transactionRepository.save(transaction4);
 
         this.mockMvc
                 .perform(get("/transfer?page=5"))

@@ -43,9 +43,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
      *
      * @param userRequest the user's request who want to connect from GitHub
      * @return the user's email
-     * @throws URISyntaxException
-     * @throws IOException
-     * @throws InterruptedException
+     * @throw URISyntaxException
+     * @throw IOException
+     * @throw InterruptedException
      */
     private static String getGithubEmail(OAuth2UserRequest userRequest) throws URISyntaxException, IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

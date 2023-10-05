@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -70,23 +71,23 @@ public class PayMyBuddyController {
      * Transfer Post endpoint to make a transaction between two users.
      *
      * @param amount the amount to send
-     * @param email1 the email 1 to send money to
+     * @param connections the email 1 to send money to
      * @param model  the model
      * @return the view "transfer" with a success or error message
      */
     @PostMapping("/transfer")
-    public String sendMoneyFromTransfer(@ModelAttribute("amount") float amount, @ModelAttribute("connections") String email1, Model model) {
+    public String sendMoneyFromTransfer(float amount, String connections, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(currentUser);
-        model.addAttribute("user", user);
-        logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());
+        logger.info("request the money transfer about {}€ between the users {} and {}", amount, connections, currentUser.getEmail());
         try {
-            transactionService.sendMoney(amount, ("transaction " + LocalDate.now().toString()), email1, user.getEmail());
+            transactionService.sendMoney(amount, ("transaction " + LocalDate.now()), connections, currentUser.getEmail());
             return "redirect:/transfer?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
-            List<UserDTO> connections = userService.getConnections(user);
-            model.addAttribute("connections", connections);
+            List<User> connectionsUser = userService.getConnections(currentUser.getEmail());
+            List<UserDTO> connectionsDTO = new ArrayList<>();
+            connectionsUser.forEach(connection -> connectionsDTO.add(userService.mapToUserDto(connection)));
+            model.addAttribute("connectionsUser", connectionsDTO);
             final Page<TransactionDTO> pageTransactions = transactionService.getTransactions(
                     currentUser.getEmail(),
                     PageRequest.of(0, 3, Sort
@@ -106,17 +107,16 @@ public class PayMyBuddyController {
     /**
      * Add connection Post endpoint to add a new contact.
      *
-     * @param connectionEmail the email to add
+     * @param email the email to add
      * @param model the model
      * @return the view "contact" in case of success and "addConnection" in the opposite
      */
     @PostMapping("/addConnection")
-    public String addConnection(@ModelAttribute("email") String connectionEmail, Model model) {
+    public String addConnection(String email, Model model) {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(currentUser);
-        logger.info("request a connection between the users {} and {}", user.getName(), connectionEmail);
+        logger.info("request a connection between the users {} and {}", currentUser.getName(), email);
         try {
-            userService.addConnection(user.getEmail(), connectionEmail);
+            userService.addConnection(currentUser.getEmail(), email);
             return "redirect:/contact?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -133,16 +133,16 @@ public class PayMyBuddyController {
      */
     @PostMapping("/deleteConnection")
     public String deleteConnection(String connectionEmail, Model model) {
-        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(existingUser);
-        logger.info("request the connection delete between the users {} and {}", connectionEmail, user.getEmail());
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the connection delete between the users {} and {}", connectionEmail, currentUser.getEmail());
         try {
-            userService.deleteConnection(user.getEmail(), connectionEmail);
+            userService.deleteConnection(currentUser.getEmail(), connectionEmail);
             return "redirect:/contact?success";
         } catch (Exception e) {
-            model.addAttribute("user", user);
             model.addAttribute("errorMessage", e.getMessage());
-            return "deleteConnection";
+            UserDTO user = userService.mapToUserDto(currentUser);
+            model.addAttribute("user", user);
+            return "error";
         }
     }
 
@@ -151,7 +151,7 @@ public class PayMyBuddyController {
      *
      * @param nameUser      the new name
      * @param bindingResult the binding result
-     * @param model         the model
+     * @param model the model
      * @return the view "profile" in case of success and "editName" in the opposite
      */
     @PostMapping("/editName")
@@ -183,14 +183,14 @@ public class PayMyBuddyController {
      */
     @PostMapping("/editPassword")
     public String editPassword(@Valid @ModelAttribute("password") PasswordDTO passwordDTO, BindingResult bindingResult, Model model) {
-        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
-        logger.info("request the password's update of the user {}", existingUser.getName());
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the password's update of the user {}", currentUser.getName());
 
         if (bindingResult.hasErrors()) {
             return "editPassword";
         }
         try {
-            userService.editPassword(passwordDTO, existingUser);
+            userService.editPassword(passwordDTO, currentUser);
             return "redirect:/logout";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -207,16 +207,16 @@ public class PayMyBuddyController {
      * @return the view "profile" in case of success and "deposit" in the opposite
      */
     @PostMapping("/deposit")
-    public String deposit(@ModelAttribute("amount") float amount, Model model) {
-        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(existingUser);
-        model.addAttribute("user", user);
-        logger.info("request the deposit by the user {}", user.getName());
+    public String deposit(float amount, Model model) {
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the deposit by the user {}", currentUser.getName());
         try {
-            transactionService.deposit(amount, existingUser);
+            transactionService.deposit(amount, currentUser);
             return "redirect:/profile?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
+            UserDTO user = userService.mapToUserDto(currentUser);
+            model.addAttribute("user", user);
             return "deposit";
         }
     }
@@ -226,20 +226,20 @@ public class PayMyBuddyController {
      * Withdraw Post endpoint to transfer money to the user's bank.
      *
      * @param amount the amount to transfer
-     * @param model  the model
+     * @param model the model
      * @return the view "profile" in case of success and "withdraw" in the opposite
      */
     @PostMapping("/withdraw")
-    public String withdraw(@ModelAttribute("amount") float amount, Model model) {
-        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(existingUser);
-        model.addAttribute("user", user);
-        logger.info("request the withdraw by the user {}", user.getName());
+    public String withdraw(float amount, Model model) {
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the withdraw by the user {}", currentUser.getName());
         try {
-            transactionService.withdraw(amount, existingUser);
+            transactionService.withdraw(amount, currentUser);
             return "redirect:/profile?success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", e.getMessage());
+            UserDTO user = userService.mapToUserDto(currentUser);
+            model.addAttribute("user", user);
             return "withdraw";
         }
     }
@@ -248,25 +248,24 @@ public class PayMyBuddyController {
      * send money Post endpoint .
      *
      * @param amount      the amount to transfer
-     * @param amount      the amount to transfer
      * @param description the description about the transfer
-     * @param email1      the email to transfer
+     * @param email      the email to transfer
      * @param model       the model
      * @return the view "transfer" in case of success and "sendMoney" in the opposite
      */
     @PostMapping("/sendMoney")
-    public String sendMoneyFromContact(@ModelAttribute("amount") float amount, @ModelAttribute("description") String description, String email1, Model model) {
-        User existingUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(existingUser);
-        model.addAttribute("user", user);
-        logger.info("request the money transfer about {}$ between the users {} and {}", amount, email1, user.getEmail());
+    public String sendMoneyFromContact(float amount, String description, String email, Model model) {
+        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
+        logger.info("request the money transfer about {}€ between the users {} and {}", amount, email, currentUser.getEmail());
         try {
-            transactionService.sendMoney(amount, description, email1, user.getEmail());
+            transactionService.sendMoney(amount, description, email, currentUser.getEmail());
             return "redirect:/transfer?success";
         } catch (Exception e) {
-            User connectionUser = userService.loadUserByUsername(email1);
+            User connectionUser = userService.loadUserByUsername(email);
             UserDTO connectionUserDto = userService.mapToUserDto(connectionUser);
             model.addAttribute("receiverUser", connectionUserDto);
+            UserDTO user = userService.mapToUserDto(currentUser);
+            model.addAttribute("user", user);
             model.addAttribute("errorMessage", e.getMessage());
             return "sendMoney";
         }

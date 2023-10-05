@@ -1,6 +1,5 @@
 package com.PayMyBuddy.dto;
 
-import com.PayMyBuddy.model.User;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -30,7 +29,7 @@ public class TransactionDTO {
     @Min(0)
     private float amount;
 
-    private User connections;
+    private UserDTO connections;
 
     @Override
     public boolean equals(Object o) {

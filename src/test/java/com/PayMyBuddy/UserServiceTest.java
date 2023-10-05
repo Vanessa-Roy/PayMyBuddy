@@ -277,7 +277,9 @@ public class UserServiceTest {
     public void getConnectionUser1ShouldShowPagesWithAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
-        userDTO.getConnections().add(user2);
+        userDTO.getConnections().add(user2Dto);
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of("email2@test.com")));
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
         List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
@@ -293,9 +295,10 @@ public class UserServiceTest {
     @Test
     @WithMockUser(username = "email@test.com")
     public void getConnectionUser2ShouldShowPagesWithAllConnectionsUserTest() {
-        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>(List.of(user)));
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
-        user2Dto.getConnections().add(user);
+        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(List.of("email2@test.com")));
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
         List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
@@ -311,13 +314,14 @@ public class UserServiceTest {
     @Test
     @WithMockUser(username = "email@test.com")
     public void getConnectionWithoutConnectionsShouldShowAnEmptyListTest() {
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(userRepository.findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3))).thenReturn(new PageImpl<>(Collections.emptyList()));
 
         Page<UserDTO> result = userServiceTest.getConnections(userDTO.getEmail(), PageRequest.of(0, 3));
 
         assertEquals(0,result.getTotalElements());
         verify(userRepository, Mockito.times(1)).findAllConnectionsByEmail(userDTO.getEmail(), PageRequest.of(0, 3));
-        verify(userRepository, Mockito.never()).findByEmail(userDTO.getEmail());
     }
 
     @Test
@@ -325,12 +329,14 @@ public class UserServiceTest {
     public void getConnectionUser1ShouldShowListWithAllConnectionsUserTest() {
         User user2 = new User("email2@test.com",100f,"existingUser2","passwordTest0!",new ArrayList<>());
         UserDTO user2Dto = userServiceTest.mapToUserDto(user2);
-        userDTO.getConnections().add(user2);
+        userDTO.getConnections().add(user2Dto);
+        user = new User("email@test.com",100f,"existingUser","passwordTest0!",new ArrayList<>());
+        when(userRepository.findByEmail("email@test.com")).thenReturn(user);
         when(userRepository.findAllConnectionsByEmail(userDTO.getEmail())).thenReturn(List.of("email2@test.com"));
         when(userRepository.findByEmail(user2.getEmail())).thenReturn(user2);
-        List<UserDTO> expectedResult = new ArrayList<>(List.of(user2Dto));
+        List<User> expectedResult = new ArrayList<>(List.of(user2));
 
-        List<UserDTO> result = userServiceTest.getConnections(userDTO);
+        List<User> result = userServiceTest.getConnections(user.getEmail());
 
         assertEquals(1,result.size());
         assertEquals(expectedResult, result);

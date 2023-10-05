@@ -1,8 +1,13 @@
 package com.PayMyBuddy.dto;
 
-import com.PayMyBuddy.model.User;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +41,7 @@ public class UserDTO {
     @Min(value = 0, message = "balance must contain digits")
     private float balance;
 
-    private List<User> connections = new ArrayList<>();
+    private List<UserDTO> connections = new ArrayList<>();
 
     /**
      * Instantiates a new User dto.

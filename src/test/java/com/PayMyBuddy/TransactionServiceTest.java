@@ -63,7 +63,6 @@ public class TransactionServiceTest {
     @Test
     @WithMockUser(username = "email@test.com")
     public void withdrawShouldUpdateAttributeBalanceUserTest() throws NotEnoughFundsException, InvalidAmountException {
-        user = new User("email@test.com",100f,"userTest","passwordTest0!",new ArrayList<>());
         assertEquals(100f,user.getBalance());
 
         transactionServiceTest.withdraw(50f, user);
@@ -125,7 +124,7 @@ public class TransactionServiceTest {
                         transaction.getDate(),
                         transaction.getDescription(),
                         -transaction.getAmount(),
-                        transaction.getReceiverUser())
+                        userService.mapToUserDto(transaction.getReceiverUser()))
         ));
 
         Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));
@@ -148,7 +147,7 @@ public class TransactionServiceTest {
                         transaction.getDate(),
                         transaction.getDescription(),
                         transaction.getAmount(),
-                        transaction.getSenderUser())
+                        userService.mapToUserDto(transaction.getSenderUser()))
         ));
 
         Page<TransactionDTO> result = transactionServiceTest.getTransactions(userDTO.getEmail(), PageRequest.of(0, 3));

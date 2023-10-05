@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,6 +44,15 @@ public class PayMyBuddyPageViewController {
     @Autowired
     private AuthenticatedUserProvider authenticatedUserProvider;
 
+    /**
+     * Index Get endpoint.
+     *
+     * @return redirect to the view "home"
+     */
+    @GetMapping("/")
+    public String index(){
+        return "redirect:/home";
+    }
 
     /**
      * Home Get endpoint.
@@ -52,6 +62,7 @@ public class PayMyBuddyPageViewController {
      */
     @GetMapping("/home")
     public String home(Model model){
+        logger.info("request the home page");
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
         String name = currentUser.getName();
         model.addAttribute("name", name);
@@ -59,16 +70,18 @@ public class PayMyBuddyPageViewController {
     }
 
     /**
-     * register Get endpoint.
+     * Register Get endpoint.
      *
      * @param model the model
      * @return the view "register" with the attribute "user"
      */
     @GetMapping("/register")
     public String register(Model model){
-        logger.info("request the form page");
+        logger.info("request the register page");
+        // to get the current user if registration via OAuth 2.0
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth.getPrincipal() instanceof CustomOAuth2User oAuth2User) {
+            // to display the email and name into the register form
             UserDTO userDTO = new UserDTO(oAuth2User.getDisplayName(),oAuth2User.getName());
             model.addAttribute("user", userDTO);
         } else {
@@ -104,9 +117,10 @@ public class PayMyBuddyPageViewController {
         User currentUser = authenticatedUserProvider.getAuthenticatedUser();
 
         // the following code handles the send Money functionality into the view
-        UserDTO currentUserDTO = userService.mapToUserDto(currentUser);
-        List<UserDTO> connections = userService.getConnections(currentUserDTO);
-        model.addAttribute("connections", connections);// to set the dropdown of connections into the view
+        List<User> connections = userService.getConnections(currentUser.getEmail());
+        List<UserDTO> connectionsDTO = new ArrayList<>();
+        connections.forEach(connection -> connectionsDTO.add(userService.mapToUserDto(connection)));
+        model.addAttribute("connections", connectionsDTO);// to set the dropdown of connections into the view
 
         // the following code handles the transactions pagination
         int currentPage = page.orElse(1);
@@ -162,9 +176,6 @@ public class PayMyBuddyPageViewController {
     @GetMapping("/addConnection")
     public String addConnection(Model model){
         logger.info("request the add connection page");
-        User currentUser = authenticatedUserProvider.getAuthenticatedUser();
-        UserDTO user = userService.mapToUserDto(currentUser);
-        model.addAttribute("user", user);
         return "addConnection";
     }
 

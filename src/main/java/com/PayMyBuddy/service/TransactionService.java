@@ -37,6 +37,9 @@ public class TransactionService {
     private UserRepository userRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private TransactionRepository transactionRepository;
 
 
@@ -51,8 +54,8 @@ public class TransactionService {
      * @return a list of transactions as pages
      */
     public Page<TransactionDTO> getTransactions(String userEmail, Pageable pageable) {
-
         User currentUser = userRepository.findByEmail(userEmail);
+        logger.info("request the list of transactions as pages about the user {}", currentUser.getName());
         Page<Transaction> transactions = transactionRepository.findBySenderUserOrReceiverUser(currentUser, currentUser, pageable);
 
         List<TransactionDTO> transactionsDTO = new ArrayList<>();
@@ -63,7 +66,7 @@ public class TransactionService {
                         transaction.getDate(),
                         transaction.getDescription(),
                         -transaction.getAmount(), // we set a negative amount when the current user is the sender
-                        transaction.getReceiverUser() // we set the connection without the current user
+                        userService.mapToUserDto(transaction.getReceiverUser()) // we set the connection without the current user
                         )
                 );
             } else if (transaction.getReceiverUser().equals(currentUser)) {
@@ -71,7 +74,7 @@ public class TransactionService {
                                 transaction.getDate(),
                                 transaction.getDescription(),
                                 transaction.getAmount(),
-                                transaction.getSenderUser()
+                        userService.mapToUserDto(transaction.getSenderUser())
                         )
                 );
             }
@@ -87,10 +90,10 @@ public class TransactionService {
      * @param description   the description about the transfer
      * @param receiverEmail the receiver email
      * @param senderEmail   the sender email
-     * @throws InvalidAmountException   the invalid amount exception
-     * @throws UserDoesntExistException the user doesnt exist exception
-     * @throws NotEnoughFundsException the not enought funds exception
-     * @throws NotExistingConnection    the not existing connection
+     * @throw InvalidAmountException   the invalid amount exception
+     * @throw UserDoesntExistException the user does not exist exception
+     * @throw NotEnoughFundsException the not enough funds exception
+     * @throw NotExistingConnection    the not existing connection
      */
     @Transactional
     public void sendMoney(float amount, String description, String receiverEmail, String senderEmail) throws InvalidAmountException, UserDoesntExistException, NotEnoughFundsException, NotExistingConnection {
@@ -133,6 +136,8 @@ public class TransactionService {
             userRepository.save(senderUser);
             userRepository.save(receiverUser);
 
+            logger.info("The money transfer about {}$ between the users {} and {} has been made", amount, receiverEmail, senderEmail);
+
             Transaction transaction = new Transaction();
             transaction.setAmount(amount);
             transaction.setReceiverUser(receiverUser);
@@ -143,7 +148,6 @@ public class TransactionService {
 
             transactionRepository.save(transaction);
 
-            logger.info("The money transfer about {}$ between the users {} and {} has been made", amount, receiverEmail, senderEmail);
             logger.info("The transaction about {}$ between the users {} and {} has been created", amount, receiverEmail, senderEmail);
         } else {
             throw new NotExistingConnection();
@@ -177,7 +181,7 @@ public class TransactionService {
      *
      * @param amount      the amount to transfer from the user's bank
      * @param currentUser the current user
-     * @throws InvalidAmountException the invalid amount exception
+     * @throw InvalidAmountException the invalid amount exception
      */
     public void deposit(Float amount, User currentUser) throws InvalidAmountException {
         if (amount <= 0) {

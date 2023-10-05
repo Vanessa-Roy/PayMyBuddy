@@ -75,7 +75,7 @@ public class UserService {
     }
 
     /**
-     * Map to user dto user dto.
+     * Map to user dto user.
      *
      * @param user the user
      * @return the user dto
@@ -85,7 +85,10 @@ public class UserService {
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
         userDto.setBalance(user.getBalance());
-        userDto.setConnections(user.getConnections());
+        List<User> connections = user.getConnections();
+        List<UserDTO> connectionsDTO = new ArrayList<>();
+        connections.forEach(connection -> connectionsDTO.add(mapToUserDto(connection)));
+        userDto.setConnections(connectionsDTO);
         return userDto;
     }
 
@@ -129,13 +132,14 @@ public class UserService {
     /**
      * Gets connections.
      *
-     * @param user the user to search for
+     * @param userEmail the user's email to search for
      * @return a list of users
      */
-    public List<UserDTO> getConnections(UserDTO user) {
-        Iterable<String> connectionsEmails = userRepository.findAllConnectionsByEmail(user.getEmail());
-        List<UserDTO> connections = new ArrayList<>();
-        connectionsEmails.forEach(email -> connections.add(mapToUserDto(userRepository.findByEmail(email))));
+    public List<User> getConnections(String userEmail) {
+        logger.info("request the list of connections about the user {}", userRepository.findByEmail(userEmail).getName());
+        Iterable<String> connectionsEmails = userRepository.findAllConnectionsByEmail(userEmail);
+        List<User> connections = new ArrayList<>();
+        connectionsEmails.forEach(email -> connections.add(userRepository.findByEmail(email)));
         return connections;
     }
 
@@ -147,6 +151,7 @@ public class UserService {
      * @return a list of users as pages
      */
     public Page<UserDTO> getConnections(String userEmail, Pageable pageable) {
+        logger.info("request the list of connections as pages about the user {}", userRepository.findByEmail(userEmail).getName());
 
         Page<String> connections = userRepository.findAllConnectionsByEmail(userEmail, pageable);
         List<UserDTO> connectionsDTO = new ArrayList<>();

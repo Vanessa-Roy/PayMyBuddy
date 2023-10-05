@@ -146,9 +146,7 @@ public class PayMyBuddyControllerIntegrationTest {
 
     @Test
     void saveExistingUserShouldNotCreateNewUserTest() throws Exception {
-        UserDTO existingUser = new UserDTO("nameTest","passwordTest!0","passwordTest!0","userTest@email.com");
-        userService.saveUser(existingUser);
-        assertNotNull((userService.loadUserByUsername("userTest@email.com")));
+        assertNotNull((userService.loadUserByUsername("existingUserTest@email.test")));
 
         this.mockMvc
                 .perform(post("/register")
@@ -156,7 +154,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .param("name","nameTest")
                         .param("password","passwordTest!0")
                         .param("matchingPassword","passwordTest!0")
-                        .param("email","userTest@email.com")
+                        .param("email","existingUserTest@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("register"));
@@ -318,7 +316,6 @@ public class PayMyBuddyControllerIntegrationTest {
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void editNameWithNameWithOnlyHyphensShouldNotUpdateAttributeNameUserTest() throws Exception {
-        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         this.mockMvc
                 .perform(post("/editName")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -432,8 +429,7 @@ public class PayMyBuddyControllerIntegrationTest {
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void deleteConnectionShouldUpdateAttributeConnectionsUserTest() throws Exception {
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
-        userRepository.save(existingUser2);
+        User existingUser2 = userRepository.findByEmail("existingUser2Test@email.test");
         User existingUser = userRepository.findByEmail("existingUserTest@email.test");
         existingUser.setConnections(List.of(existingUser2));
         userRepository.save(existingUser);
@@ -453,25 +449,18 @@ public class PayMyBuddyControllerIntegrationTest {
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void deleteConnectionWithoutConnectionsShouldNotUpdateAttributeConnectionsUserTest() throws Exception {
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>(List.of()));
-        userRepository.save(existingUser2);
-        User existingUser = userRepository.findByEmail("existingUserTest@email.test");
-        userRepository.save(existingUser);
-
         this.mockMvc
                 .perform(post("/deleteConnection")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("email1","existingUser2Test@email.test")
+                        .param("connectionEmail","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(view().name("deleteConnection"));
+                .andExpect(view().name("error"));
     }
 
     @Test
     @WithMockUser(username = "existingUserTest@email.test")
     void addConnectionShouldUpdateAttributeConnectionsUserTest() throws Exception {
-        User existingUser2 = new User("existingUser2Test@email.test",0f,"existingUser2NameTest","passwordTest!0",new ArrayList<>());
-        userRepository.save(existingUser2);
         this.mockMvc
                 .perform(post("/addConnection")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -607,7 +596,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("amount","10f")
                         .param("description","transactionTest")
-                        .param("email1","existingUser2Test@email.test")
+                        .param("email","existingUser2Test@email.test")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/transfer?success"));
@@ -629,7 +618,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("amount","10f")
                         .param("description","transactionTest")
-                        .param("email1","existingUser2Test@email.test")
+                        .param("email","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("sendMoney"));
@@ -648,7 +637,7 @@ public class PayMyBuddyControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("amount","10f")
                         .param("description","transactionTest")
-                        .param("email1","existingUser2Test@email.test")
+                        .param("email","existingUser2Test@email.test")
                         .with(csrf()))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name("sendMoney"));
