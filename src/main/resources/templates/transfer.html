@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+    <title>Pay My Buddy - Transfer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <style>
+        .btn-success{
+    background-color: #5cb95c !important;
+    border-color: #5cb95c !important;
+    }
+
+        .btn-success:hover {
+    background-color: #6dbd54 !important;
+    border-color: #6dbd54 !important;
+    }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/home}">
+            <img class="col-md-4" th:src="@{/PayMyBuddyLogo.png}" alt="PayMyBuddyLogo"/>
+        </a>
+        <ul class="nav nav-pills justify-content-end">
+            <li class="nav-item">
+                <a class="nav-link" href="/home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#">Transfer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/contact">Contact</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/logout">Log off</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="card-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/home">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Transfer</li>
+        </ol>
+    </nav>
+</div>
+<div class="container mt-2">
+    <div class="row col-md-12">
+
+        <div th:if="${param.success}">
+            <div class="alert alert-info">
+                You have successfully sent your transaction!
+            </div>
+        </div>
+        <div th:if="${errorMessage}">
+            <div class="alert alert-danger">
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
+        <div class="card border border-0">
+            <h5 class="mt-1 card-title mb-0">Send Money
+                <a class="float-end btn btn-primary col-3" href="/addConnection">Add Connection</a>
+            </h5>
+            <div class="card mb-2 card-header align-items-center pb-5 pt-5 rounded-0 border border-0">
+                <form
+                        class="row g-3 align-items-center"
+                        method="post"
+                        role="form"
+                        th:action="@{/transfer}"
+                >
+                    <div class="col-5 offset-md-1">
+                        <select class="form-select border border-2 border-dark rounded-0" id="connections" name="connections" required>
+                            <option value="">Select A Connection</option>
+                            <option th:each="c:${connections}" th:value="${c.email}"
+                                    th:text="${c.name} + ' email: ' + ${c.email}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group">
+                            <input
+                                    class="form-control border border-2 border-dark rounded-0"
+                                    id="amount"
+                                    name="amount"
+                                    type="number"
+                                    placeholder="0€"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                            />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <button type="submit" class="btn btn-success col-12" >Pay</button>
+                    </div>
+                </form>
+                <div class="text-center"> You will be charged a fee of 0.5% of the amount </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="mt-2">
+                    <h5 class="mt-1 card-title">My Transactions </h5>
+                </div>
+                <div class="mt-2 border border-2 border-dark">
+                    <table style="width:100%" class="table table-striped mb-0 text-center text-break p-2">
+                        <thead class="table-success">
+                        <tr>
+                            <th style="width:30%">Connections</th> <th style="width:50%">Description</th> <th style="width:20%">Amount</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="t:${transactions}">
+                            <td th:text="${t.connections.name}"></td>
+                            <td th:text="${t.description}"></td>
+                            <td>
+                                <span th:text="${t.amount}"></span>
+                                <span>€</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <h5 th:if="${pageNumbers.size < 1}" class="text-center">Not transactions yet</h5>
+                </div>
+                <nav aria-label="Transactions result pages">
+                    <ul class="pagination justify-content-center mt-1">
+                        <li th:if="${pageNumbers.size > 1}"
+                            th:class="${0==transactions.number ? 'page-item disabled':'page-item'}"
+                        >
+                            <a class="page-link" th:href="@{/transfer(page=${transactions.number})}"
+                               th:class="${pageNumber==transactions.number + 1 ? 'btn btn-primary':'page-link'}"aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li th:if="${transactions.number>3}">
+                            <a title="Previous Pages" class="page-link"
+                               th:href="@{/transfer(page=${transactions.number-3})}"
+                            >...</a>
+                        </li>
+                        <li class="page-item"
+                            th:each="pageNumber:${pageNumbers}"
+                            th:if="${pageNumber-1 > transactions.number-4 AND pageNumber-1 < transactions.number+4}"
+                        >
+                            <a th:href="@{/transfer(page=${pageNumber})}"
+                               th:text=${pageNumber}
+                               th:class="${pageNumber==transactions.number + 1 ? 'btn btn-primary':'page-link'}"></a>
+                        </li>
+                        <li th:if="${transactions.number+4<pageNumbers.size}">
+                            <a title="Next Pages" class="page-link"
+                               th:href="@{/transfer(page=${transactions.number+5})}"
+                            >...</a>
+                        </li>
+                        <li th:if="${pageNumbers.size > 1}"
+                            th:class="${transactions.totalPages==transactions.number + 1 ? 'page-item disabled':'page-item'}"
+                        >
+                            <a class="page-link" th:href="@{/transfer(page=${transactions.number + 2})}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
